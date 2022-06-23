@@ -1,0 +1,137 @@
+{
+  "formatVersion": 0,
+  "fileVersion": 0,
+  "projects": [
+    {
+      "projectName": "NeoPixel Rainbows",
+      "projectImage": "https://cdn-shop.adafruit.com/970x728/4333-11.jpg",
+      "description": "For this project we're going to toss a rainbow animation to our device.",
+      "bundleLink": "https://learn.adafruit.com/pages/22555/elements/3105809/download?type=zip",
+      "learnGuideLink": "https://learn.adafruit.com/pyleap-device-enabled-in-rainbows",
+      "compatibility": [
+        "circuitplayground_bluefruit",
+        "clue_nrf52840_express"
+      ]
+    },
+    {
+      "projectName": "Blink",
+      "projectImage": "https://cdn-learn.adafruit.com/assets/assets/000/107/301/medium800/bluefruit_IMG_8421.png?1639425455",
+      "description": "A simple project code that creates a blinking animation of purple and pink.",
+      "bundleLink": "https://learn.adafruit.com/pages/22920/elements/3105810/download?type=zip",
+      "learnGuideLink": "https://learn.adafruit.com/pyleap-device-enabled-blinky",
+      "compatibility": [
+        "circuitplayground_bluefruit",
+        "clue_nrf52840_express"
+      ]
+    },
+    {
+      "projectName": "Eyelights LED Glasses",
+      "projectImage": "https://cdn-learn.adafruit.com/assets/assets/000/107/299/medium800/bluefruit_IMG_8416.png?1639424703",
+      "description": "There's also six mounting holes for attaching to a glasses frame of your choosing - we recommend getting some 'fashion frames' from the mall or a street vendor, they're all the style and will provide a great mechanical support.",
+      "bundleLink": "https://learn.adafruit.com/pages/22957/elements/3105811/download?type=zip",
+      "learnGuideLink": "https://learn.adafruit.com/pyleap-eyelights-led-glasses-for-circuit-playground-bluefruit",
+      "compatibility": [
+        "circuitplayground_bluefruit"
+      ]
+    },
+    
+    {
+      "projectName": "WAV Playback",
+      "projectImage": "https://cdn-learn.adafruit.com/assets/assets/000/106/568/medium800/bluefruit_PyLeap_play_audio.jpg?1637100396",
+      "description": "This project plays a different WAV for each button pressed. Be aware, the speaker is small, so you will not get high quality WAV playback using the built-in speaker.",
+      "bundleLink": "https://learn.adafruit.com/pages/23250/elements/3106074/download?type=zip",
+      "learnGuideLink": "https://learn.adafruit.com/pyleap-wav-playback-for-cpb",
+      "compatibility": [
+        "circuitplayground_bluefruit"
+      ]
+    },
+
+    
+    {
+      "projectName": "Light Meter",
+      "projectImage": "https://cdn-learn.adafruit.com/assets/assets/000/106/566/medium800/bluefruit_PyLeap_light_meter_image.jpg?1637100369",
+      "description": "This project uses the ten LEDs to indicate light level from the light sensor",
+      "bundleLink": "https://learn.adafruit.com/pages/23270/elements/3106247/download?type=zip",
+      "learnGuideLink": "https://learn.adafruit.com/pyleap-neopixel-light-meter",
+      "compatibility": [
+        "circuitplayground_bluefruit"
+      ]
+    },
+    
+    {
+      "projectName": "Touch NeoPixel Rainbow",
+      "projectImage": "https://cdn-learn.adafruit.com/assets/assets/000/106/564/medium800/bluefruit_PyLeap_touch_rainbow_image.jpg?1637100326",
+      "description": "This project uses the touch pads to light up the LEDs in rainbow colors.",
+      "bundleLink": "https://learn.adafruit.com/pages/23272/elements/3106255/download?type=zip",
+      "learnGuideLink": "https://learn.adafruit.com/pyleap-touch-neopixel-rainbow",
+      "compatibility": [
+        "circuitplayground_bluefruit"
+      ]
+    },
+    
+    {
+      "projectName": "Button Controlled NeoPixels",
+      "projectImage": "https://cdn-learn.adafruit.com/assets/assets/000/106/567/medium800/bluefruit_PyLeap_NeoPixel_Buttons_image.jpg?1637100385",
+      "description": "This project lights up half of the NeoPixel LEDs for each button when pressed.",
+      "bundleLink": "https://learn.adafruit.com/pages/23269/elements/3106245/download?type=zip",
+      "learnGuideLink": "https://learn.adafruit.com/pyleap-buttons-neopixels",
+      "compatibility": [
+        "circuitplayground_bluefruit"
+      ]
+    },
+    
+    {
+      "projectName": "Touch Tone Piano",
+      "projectImage": "https://cdn-learn.adafruit.com/assets/assets/000/106/570/medium800/bluefruit_PyLeap_Tone_Piano_image.jpg?1637100800",
+      "description": "This project plays a different tone and lights up the NeoPixels a different color for each touch pad touched.",
+      "bundleLink": "https://learn.adafruit.com/pages/23248/elements/3106070/download?type=zip",
+      "learnGuideLink": "https://learn.adafruit.com/pyleap-tone-piano-for-cpb",
+      "compatibility": [
+        "circuitplayground_bluefruit"
+      ]
+    },
+    {
+      "projectName": "MP3 Playback",
+      "projectImage": "https://cdn-learn.adafruit.com/assets/assets/000/106/569/medium800/bluefruit_PyLeap_play_audio.jpg?1637100405",
+      "description": "This project plays a different MP3 for each button pressed.",
+      "bundleLink": "https://learn.adafruit.com/pages/23249/elements/3106072/download?type=zip",
+      "learnGuideLink": "https://learn.adafruit.com/pyleap-mp3-playback-for-cpb",
+      "compatibility": [
+        "circuitplayground_bluefruit"
+      ]
+    },
+    
+    {
+      "projectName": "Altimeter",
+      "projectImage": "https://cdn-learn.adafruit.com/guides/cropped_images/000/003/050/medium640/wright_summit_crop.jpg?1595783355",
+      "description": "Here we will use an Adafruit CLUE board to create a simple little altimeter and take it into the mountains.",
+      "bundleLink": "https://learn.adafruit.com/pages/19812/elements/3068825/download?type=zip",
+      "learnGuideLink": "https://learn.adafruit.com/clue-altimeter",
+      "compatibility": [
+          "clue_nrf52840_express"
+      ]
+    },
+    
+    {
+      "projectName": "Metronome",
+      "projectImage": "https://cdn-learn.adafruit.com/guides/cropped_images/000/002/994/medium640/metronome-2126b.jpg?1588972332",
+      "description": "In this project you'll learn how to make a metronome using the CLUE board and CircuitPython.",
+      "bundleLink": "https://learn.adafruit.com/pages/19361/elements/3062520/download?type=zip",
+      "learnGuideLink": "https://learn.adafruit.com/metronome-clue",
+      "compatibility": [
+          "clue_nrf52840_express"
+      ]
+    },
+    
+    {
+      "projectName": "Digital Egg Drop Experiment",
+      "projectImage": "https://cdn-learn.adafruit.com/guides/cropped_images/000/002/942/medium640/IMG_1162.JPG?1583858232",
+      "description": "Study the g-forces of your egg drop experiments with the CLUE board running CircuitPython!",
+      "bundleLink": "https://learn.adafruit.com/pages/18939/elements/3058337/download?type=zip",
+      "learnGuideLink": "https://learn.adafruit.com/egg-drop-clue",
+      "compatibility": [
+          "clue_nrf52840_express"
+      ]
+    }
+  ]
+}

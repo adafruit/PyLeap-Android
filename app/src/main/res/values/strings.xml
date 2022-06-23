@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">PyLeap</string>
+
+
+    <string name="navigation_info">Info</string>
+
+    <!-- Compatibility devices -->
+    <string name="compatiblity_circuitplayground_bluefruit">Circuit Playground Bluefruit</string>
+    <string name="compatiblity_clue_nrf52840_express">Adafruit CLUE</string>
+
+</resources>

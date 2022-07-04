@@ -11,7 +11,7 @@ import androidx.navigation.NavHostController
  * Destinations used in the app
  */
 sealed class PyLeapDestinations(val route: String) {
-    //object Startup : PyLeapDestinations("startup")
+    object Startup : PyLeapDestinations("startup")
     object Projects : PyLeapDestinations("projects")
 }
 

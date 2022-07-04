@@ -7,7 +7,10 @@ package com.adafruit.pyleap.ui.projects
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Devices
@@ -15,13 +18,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.adafruit.pyleap.model.FakeProjectsRepositoryImpl
 import com.adafruit.pyleap.model.Project
+import com.adafruit.pyleap.ui.connection.ConnectionViewModel
+import com.adafruit.pyleap.ui.projectdetails.ProjectDetailsScreen
 import com.adafruit.pyleap.ui.theme.PyLeapTheme
+import io.openroad.ble.filetransfer.FakeFileTransferConnectionManagerImpl
+import io.openroad.ble.state.BleState
+import io.openroad.ble.state.FakeBleStateRepository
 
 @Composable
 fun ProjectsScreen(
     modifier: Modifier = Modifier,
     isExpandedScreen: Boolean,
     projectsViewModel: ProjectsViewModel,
+    connectionViewModel: ConnectionViewModel,
 ) {
     val uiState by projectsViewModel.uiState.collectAsState()
 
@@ -29,7 +38,8 @@ fun ProjectsScreen(
         modifier = modifier,
         uiState = uiState,
         isExpandedScreen = isExpandedScreen,
-        projectsViewModel = projectsViewModel
+        projectsViewModel = projectsViewModel,
+        connectionViewModel = connectionViewModel,
     )
 }
 
@@ -40,6 +50,7 @@ private fun ProjectsScreen(
     uiState: ProjectsViewModel.UiState,
     isExpandedScreen: Boolean,
     projectsViewModel: ProjectsViewModel,
+    connectionViewModel: ConnectionViewModel,
 ) {
     val projectsListLazyListState = rememberLazyListState()
     val projectsDetailLazyListStates = when (uiState) {
@@ -80,9 +91,9 @@ private fun ProjectsScreen(
                     uiState = uiState,
                     isExpandedScreen = isExpandedScreen,
                     onRefreshProjects = { projectsViewModel.refreshProjects() },
+                    connectionViewModel = connectionViewModel,
                 ) { projects ->
                     ProjectsList(
-
                         projects = projects,
                         onSelectProjectId = { projectsViewModel.selectProjectId(it) },
                         projectsListLazyListState = projectsListLazyListState,
@@ -110,6 +121,7 @@ private fun ProjectsScreen(
                     uiState = uiState,
                     isExpandedScreen = isExpandedScreen,
                     onRefreshProjects = { projectsViewModel.refreshProjects() },
+                    connectionViewModel = connectionViewModel,
                 ) { projects ->
                     check(uiState is ProjectsViewModel.UiState.Projects)
 
@@ -165,21 +177,33 @@ private fun getProjectsScreenType(
         }
     }
 }
-
 // endregion
+
 
 // region Preview
 @Preview(showBackground = true)
 @Composable
-fun ProjectsSmarphonePreview() {
+fun ProjectsSmartphonePreview() {
     // Use the FakeProjectsRepository for Preview
     val projectsViewModel: ProjectsViewModel = viewModel(
-        factory = ProjectsViewModel.provideFactory(FakeProjectsRepositoryImpl(context = LocalContext.current))
+        factory = ProjectsViewModel.provideFactory(
+            false,
+            FakeProjectsRepositoryImpl(context = LocalContext.current)
+        )
     )
+
+    val connectionViewModel = viewModel {
+        ConnectionViewModel(
+            true,
+            FakeBleStateRepository(state = BleState.Enabled),
+            FakeFileTransferConnectionManagerImpl()
+        )
+    }
 
     PyLeapTheme {
         ProjectsScreen(
             projectsViewModel = projectsViewModel,
+            connectionViewModel = connectionViewModel,
             isExpandedScreen = false
         )
     }
@@ -190,12 +214,24 @@ fun ProjectsSmarphonePreview() {
 fun ProjectsTabletPortraitPreview() {
     // Use the FakeProjectsRepository for Preview
     val projectsViewModel: ProjectsViewModel = viewModel(
-        factory = ProjectsViewModel.provideFactory(FakeProjectsRepositoryImpl(context = LocalContext.current))
+        factory = ProjectsViewModel.provideFactory(
+            false,
+            FakeProjectsRepositoryImpl(context = LocalContext.current)
+        )
     )
+
+    val connectionViewModel = viewModel {
+        ConnectionViewModel(
+            true,
+            FakeBleStateRepository(state = BleState.Enabled),
+            FakeFileTransferConnectionManagerImpl()
+        )
+    }
 
     PyLeapTheme {
         ProjectsScreen(
             projectsViewModel = projectsViewModel,
+            connectionViewModel = connectionViewModel,
             isExpandedScreen = false
         )
     }
@@ -206,14 +242,23 @@ fun ProjectsTabletPortraitPreview() {
 fun ProjectsTabletLandscapePreview() {
     // Use the FakeProjectsRepository for Preview
     val projectsViewModel: ProjectsViewModel = viewModel(
-        factory = ProjectsViewModel.provideFactory(FakeProjectsRepositoryImpl(context = LocalContext.current))
+        factory = ProjectsViewModel.provideFactory(true, FakeProjectsRepositoryImpl(context = LocalContext.current))
     )
+
+    val connectionViewModel = viewModel {
+        ConnectionViewModel(
+            true,
+            FakeBleStateRepository(state = BleState.Enabled),
+            FakeFileTransferConnectionManagerImpl()
+        )
+    }
 
     projectsViewModel.selectProjectId("Eyelights LED Glasses")
 
     PyLeapTheme {
         ProjectsScreen(
             projectsViewModel = projectsViewModel,
+            connectionViewModel = connectionViewModel,
             isExpandedScreen = true
         )
     }

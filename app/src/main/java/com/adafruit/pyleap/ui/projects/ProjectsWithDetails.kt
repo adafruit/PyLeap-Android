@@ -14,6 +14,7 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.adafruit.pyleap.model.Project
+import com.adafruit.pyleap.ui.projectdetails.ProjectDetailsScreen
 
 @Composable
 fun ProjectsWithDetails(

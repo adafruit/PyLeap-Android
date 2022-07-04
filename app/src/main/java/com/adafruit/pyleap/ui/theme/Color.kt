@@ -18,3 +18,4 @@ val ProjectCardBackground = Color(0xFF7C54A2)
 
 val ConnectionStatusSuccess = Color(0xFF72A254)
 val ConnectionStatusError = Color(0xFFA25454)
+val ConnectionStatusScanning = Color(0xFF3F51B5)

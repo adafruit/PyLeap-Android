@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class ProjectsViewModel(
+    private val autoselectFirstProjectAfterLoading: Boolean,
     private val projectsRepository: ProjectsRepository
 ) : ViewModel() {
     // UI State
@@ -47,7 +48,6 @@ class ProjectsViewModel(
     }
 
     // Data - Private
-    //private val log by LogUtils()
     private val viewModelState = MutableStateFlow(ViewModelState(isLoading = true))
 
     // Data
@@ -75,6 +75,7 @@ class ProjectsViewModel(
                     onSuccess = { projectsFeed: ProjectsFeed ->
                         viewModelState.copy(
                             projects = projectsFeed.allProjects,
+                            selectedProjectId = if (autoselectFirstProjectAfterLoading) projectsFeed.allProjects.firstOrNull()?.id else null,
                             isLoading = false
                         )
                     },
@@ -91,7 +92,7 @@ class ProjectsViewModel(
 
     fun selectProjectId(id: String) {
         viewModelState.update {
-            it.copy( selectedProjectId = id)
+            it.copy(selectedProjectId = id)
         }
     }
 
@@ -106,11 +107,15 @@ class ProjectsViewModel(
      */
     companion object {
         fun provideFactory(
+            autoselectFirstProjectAfterLoading: Boolean,
             projectsRepository: ProjectsRepository,
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ProjectsViewModel(projectsRepository) as T
+                return ProjectsViewModel(
+                    autoselectFirstProjectAfterLoading,
+                    projectsRepository
+                ) as T
             }
         }
     }

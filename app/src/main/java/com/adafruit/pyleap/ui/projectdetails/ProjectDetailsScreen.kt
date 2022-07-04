@@ -1,4 +1,4 @@
-package com.adafruit.pyleap.ui.projects
+package com.adafruit.pyleap.ui.projectdetails
 
 /**
  * Created by Antonio García (antonio@openroad.es)
@@ -35,7 +35,6 @@ import coil.request.ImageRequest
 import com.adafruit.pyleap.R
 import com.adafruit.pyleap.model.FakeProjectsRepositoryImpl
 import com.adafruit.pyleap.model.Project
-import com.adafruit.pyleap.ui.projectdetails.ProjectDetailsDestinations
 import com.adafruit.pyleap.ui.theme.ConnectionStatusSuccess
 import com.adafruit.pyleap.ui.theme.NavigationBackground
 import com.adafruit.pyleap.ui.theme.ProjectCardBackground

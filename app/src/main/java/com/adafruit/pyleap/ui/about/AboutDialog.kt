@@ -6,6 +6,7 @@ package com.adafruit.pyleap.ui.about
 
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.MaterialTheme
@@ -13,13 +14,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.adafruit.pyleap.BuildConfig
 import com.adafruit.pyleap.R
 import com.adafruit.pyleap.ui.dialog.CustomDialog
 import com.adafruit.pyleap.ui.theme.PyLeapTheme
@@ -49,14 +53,19 @@ private fun AboutContents(
         //horizontalAlignment = Alignment.CenterHorizontally,
         //verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        val uriHandler = LocalUriHandler.current
-
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
             Image(
-                modifier = Modifier.padding(bottom = 20.dp),
                 painter = painterResource(id = R.drawable.info_adafruit_logo),
                 contentDescription = null, // decorative element
             )
+
+            Text("PyLeap v" + BuildConfig.VERSION_NAME + " b" + BuildConfig.VERSION_CODE, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 46.dp))
         }
 
         Text(

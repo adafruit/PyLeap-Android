@@ -25,6 +25,7 @@ import com.adafruit.pyleap.R
 import com.adafruit.pyleap.model.Project
 import com.adafruit.pyleap.ui.about.AboutDialog
 import com.adafruit.pyleap.ui.connection.ConnectionCard
+import com.adafruit.pyleap.ui.connection.ConnectionViewModel
 import com.adafruit.pyleap.ui.connection.ScanDialog
 import com.adafruit.pyleap.ui.theme.NavigationBackground
 import com.adafruit.pyleap.ui.utils.LoadingContent
@@ -38,6 +39,7 @@ fun ProjectsScaffold(
     onRefreshProjects: () -> Unit,
     //onSelectProjectId: (String) -> Unit,
     //projectsListLazyListState: LazyListState,
+    connectionViewModel: ConnectionViewModel,
     projectsLoadedContent: @Composable (
         projects: List<Project>
     ) -> Unit
@@ -54,6 +56,7 @@ fun ProjectsScaffold(
             topBar = {
                 if (showTopAppBar) {
                     ProjectsAppBar(
+                        connectionViewModel = connectionViewModel,
                         onOpenAbout = { isAboutDialogOpen = true },
                         onOpenScanDialog = { isScanDialogOpen = true })
                 }
@@ -176,6 +179,7 @@ private fun ProjectsContents(
 
 @Composable
 private fun ProjectsAppBar(
+    connectionViewModel: ConnectionViewModel,
     onOpenAbout: () -> Unit,
     onOpenScanDialog: () -> Unit,
 ) {
@@ -203,6 +207,9 @@ private fun ProjectsAppBar(
             }
         )
 
-        ConnectionCard(onOpenScanDialog = onOpenScanDialog)
+        ConnectionCard(
+            connectionViewModel = connectionViewModel,
+            onOpenScanDialog = onOpenScanDialog
+        )
     }
 }

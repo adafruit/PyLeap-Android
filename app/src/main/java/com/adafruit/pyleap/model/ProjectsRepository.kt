@@ -11,7 +11,6 @@ import com.adafruit.pyleap.utils.getDataFromAssetAsString
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 
-
 /**
  * Interface to the Projects data layer.
  */
@@ -50,5 +49,4 @@ class FakeProjectsRepositoryImpl(private val context: Context): ProjectsReposito
 
         return projectsFeed
     }
-
 }

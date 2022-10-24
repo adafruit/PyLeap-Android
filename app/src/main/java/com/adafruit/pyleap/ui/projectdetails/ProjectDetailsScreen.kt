@@ -250,6 +250,7 @@ private fun ImageLoading(maxHeight: Dp) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProjectDetailsTopBar(
     title: String,
@@ -258,7 +259,7 @@ private fun ProjectDetailsTopBar(
     onBack: () -> Unit,
     //navigationIconContent: @Composable (() -> Unit) = {}
 ) {
-    SmallTopAppBar(
+    TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = NavigationBackground,
         ),

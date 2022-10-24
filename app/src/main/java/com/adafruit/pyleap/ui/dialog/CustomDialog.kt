@@ -26,7 +26,6 @@ import androidx.navigation.compose.rememberNavController
 import com.adafruit.pyleap.ui.connection.ScanDestinations
 import com.adafruit.pyleap.ui.theme.NavigationBackground
 
-
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun CustomDialog(
@@ -102,6 +101,7 @@ private fun CustomDialogNavHost(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DialogTopBar(
     title: String,
@@ -111,7 +111,7 @@ private fun DialogTopBar(
     val containerColor = NavigationBackground// if (!isExpandedScreen) NavigationBackground else Color.White
     val foregroundColor = Color.White//if (isExpandedScreen) Color.Black else Color.White
 
-    SmallTopAppBar(colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+    TopAppBar(colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
         containerColor = containerColor,
     ), title = {
         Column() {

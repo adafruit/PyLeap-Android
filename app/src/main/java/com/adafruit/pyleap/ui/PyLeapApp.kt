@@ -1,17 +1,14 @@
-package com.adafruit.pyleap
-
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.runtime.Composable
-import androidx.navigation.compose.rememberNavController
-import com.adafruit.pyleap.ui.PyLeapNavGraph
-import com.adafruit.pyleap.ui.theme.PyLeapTheme
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import io.openroad.ble.BleManager
+package com.adafruit.pyleap.ui
 
 /**
  * Created by Antonio García (antonio@openroad.es)
  */
+
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.runtime.Composable
+import androidx.navigation.compose.rememberNavController
+import com.adafruit.pyleap.AppContainer
+import com.adafruit.pyleap.ui.theme.PyLeapTheme
 
 @Composable
 fun PyLeapApp(

@@ -18,19 +18,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.adafruit.pyleap.model.FakeProjectsRepositoryImpl
 import com.adafruit.pyleap.model.Project
-import com.adafruit.pyleap.ui.connection.ConnectionViewModel
 import com.adafruit.pyleap.ui.projectdetails.ProjectDetailsScreen
 import com.adafruit.pyleap.ui.theme.PyLeapTheme
-import io.openroad.ble.filetransfer.FakeFileTransferConnectionManagerImpl
-import io.openroad.ble.state.BleState
-import io.openroad.ble.state.FakeBleStateRepository
+import io.openroad.filetransfer.ble.scanner.BlePeripheralScannerFake
+import io.openroad.filetransfer.filetransfer.ConnectionManager
+import io.openroad.filetransfer.wifi.scanner.WifiPeripheralScannerFake
 
 @Composable
 fun ProjectsScreen(
     modifier: Modifier = Modifier,
     isExpandedScreen: Boolean,
     projectsViewModel: ProjectsViewModel,
-    connectionViewModel: ConnectionViewModel,
+    connectionManager: ConnectionManager,
 ) {
     val uiState by projectsViewModel.uiState.collectAsState()
 
@@ -39,7 +38,7 @@ fun ProjectsScreen(
         uiState = uiState,
         isExpandedScreen = isExpandedScreen,
         projectsViewModel = projectsViewModel,
-        connectionViewModel = connectionViewModel,
+        connectionManager = connectionManager,
     )
 }
 
@@ -50,7 +49,7 @@ private fun ProjectsScreen(
     uiState: ProjectsViewModel.UiState,
     isExpandedScreen: Boolean,
     projectsViewModel: ProjectsViewModel,
-    connectionViewModel: ConnectionViewModel,
+    connectionManager: ConnectionManager,
 ) {
     val projectsListLazyListState = rememberLazyListState()
     val projectsDetailLazyListStates = when (uiState) {
@@ -91,7 +90,7 @@ private fun ProjectsScreen(
                     uiState = uiState,
                     isExpandedScreen = isExpandedScreen,
                     onRefreshProjects = { projectsViewModel.refreshProjects() },
-                    connectionViewModel = connectionViewModel,
+                    connectionManager = connectionManager,
                 ) { projects ->
                     ProjectsList(
                         projects = projects,
@@ -121,7 +120,7 @@ private fun ProjectsScreen(
                     uiState = uiState,
                     isExpandedScreen = isExpandedScreen,
                     onRefreshProjects = { projectsViewModel.refreshProjects() },
-                    connectionViewModel = connectionViewModel,
+                    connectionManager = connectionManager,
                 ) { projects ->
                     check(uiState is ProjectsViewModel.UiState.Projects)
 
@@ -192,18 +191,18 @@ fun ProjectsSmartphonePreview() {
         )
     )
 
-    val connectionViewModel = viewModel {
-        ConnectionViewModel(
-            true,
-            FakeBleStateRepository(state = BleState.Enabled),
-            FakeFileTransferConnectionManagerImpl()
-        )
-    }
+    val connectionManager = ConnectionManager(
+        context = LocalContext.current,
+        blePeripheralScanner = BlePeripheralScannerFake(),
+        wifiPeripheralScanner = WifiPeripheralScannerFake(),
+        onBlePeripheralBonded = { _, _ -> },
+        onWifiPeripheralGetPasswordForHostName = { _, _ -> null }
+    )
 
     PyLeapTheme {
         ProjectsScreen(
             projectsViewModel = projectsViewModel,
-            connectionViewModel = connectionViewModel,
+            connectionManager = connectionManager,
             isExpandedScreen = false
         )
     }
@@ -220,18 +219,18 @@ fun ProjectsTabletPortraitPreview() {
         )
     )
 
-    val connectionViewModel = viewModel {
-        ConnectionViewModel(
-            true,
-            FakeBleStateRepository(state = BleState.Enabled),
-            FakeFileTransferConnectionManagerImpl()
-        )
-    }
+    val connectionManager = ConnectionManager(
+        context = LocalContext.current,
+        blePeripheralScanner = BlePeripheralScannerFake(),
+        wifiPeripheralScanner = WifiPeripheralScannerFake(),
+        onBlePeripheralBonded = { _, _ -> },
+        onWifiPeripheralGetPasswordForHostName = { _, _ -> null }
+    )
 
     PyLeapTheme {
         ProjectsScreen(
             projectsViewModel = projectsViewModel,
-            connectionViewModel = connectionViewModel,
+            connectionManager = connectionManager,
             isExpandedScreen = false
         )
     }
@@ -242,23 +241,26 @@ fun ProjectsTabletPortraitPreview() {
 fun ProjectsTabletLandscapePreview() {
     // Use the FakeProjectsRepository for Preview
     val projectsViewModel: ProjectsViewModel = viewModel(
-        factory = ProjectsViewModel.provideFactory(true, FakeProjectsRepositoryImpl(context = LocalContext.current))
+        factory = ProjectsViewModel.provideFactory(
+            true,
+            FakeProjectsRepositoryImpl(context = LocalContext.current)
+        )
     )
 
-    val connectionViewModel = viewModel {
-        ConnectionViewModel(
-            true,
-            FakeBleStateRepository(state = BleState.Enabled),
-            FakeFileTransferConnectionManagerImpl()
-        )
-    }
+    val connectionManager = ConnectionManager(
+        context = LocalContext.current,
+        blePeripheralScanner = BlePeripheralScannerFake(),
+        wifiPeripheralScanner = WifiPeripheralScannerFake(),
+        onBlePeripheralBonded = { _, _ -> },
+        onWifiPeripheralGetPasswordForHostName = { _, _ -> null }
+    )
 
     projectsViewModel.selectProjectId("Eyelights LED Glasses")
 
     PyLeapTheme {
         ProjectsScreen(
             projectsViewModel = projectsViewModel,
-            connectionViewModel = connectionViewModel,
+            connectionManager = connectionManager,
             isExpandedScreen = true
         )
     }

@@ -7,16 +7,14 @@ package com.adafruit.pyleap.ui.projects
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.adafruit.pyleap.model.Project
 import com.adafruit.pyleap.model.ProjectsFeed
 import com.adafruit.pyleap.model.ProjectsRepository
-import com.adafruit.pyleap.utils.LogUtils
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class ProjectsViewModel(
-    private val autoselectFirstProjectAfterLoading: Boolean,
+    private val autoSelectFirstProjectAfterLoading: Boolean,
     private val projectsRepository: ProjectsRepository
 ) : ViewModel() {
     // UI State
@@ -59,10 +57,13 @@ class ProjectsViewModel(
             viewModelState.value.toUiState()
         )
 
+    // region Lifecycle
     init {
         refreshProjects()
     }
+    // endregion
 
+    // region Actions
     fun refreshProjects() {
         // Ui state is refreshing
         viewModelState.update { it.copy(isLoading = true) }
@@ -75,7 +76,7 @@ class ProjectsViewModel(
                     onSuccess = { projectsFeed: ProjectsFeed ->
                         viewModelState.copy(
                             projects = projectsFeed.allProjects,
-                            selectedProjectId = if (autoselectFirstProjectAfterLoading) projectsFeed.allProjects.firstOrNull()?.id else null,
+                            selectedProjectId = if (autoSelectFirstProjectAfterLoading) projectsFeed.allProjects.firstOrNull()?.id else null,
                             isLoading = false
                         )
                     },
@@ -101,6 +102,7 @@ class ProjectsViewModel(
             it.copy(selectedProjectId = null)
         }
     }
+    // endregion
 
     /**
      * Factory that takes ProjectsRepository as a dependency

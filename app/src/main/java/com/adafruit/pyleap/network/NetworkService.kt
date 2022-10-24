@@ -13,7 +13,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import java.lang.reflect.Type
 
-
 /**
  * Created by Antonio García (antonio@openroad.es)
  */
@@ -27,7 +26,7 @@ interface NetworkService {
 
     // region Singleton
     companion object {
-        const val baseUrl = "https://adafruit.github.io"
+        private const val baseUrl = "https://adafruit.github.io"
 
         var networkService: NetworkService? = null
         fun getInstance(context: Context): NetworkService {

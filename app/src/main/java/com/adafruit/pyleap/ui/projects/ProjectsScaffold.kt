@@ -25,10 +25,10 @@ import com.adafruit.pyleap.R
 import com.adafruit.pyleap.model.Project
 import com.adafruit.pyleap.ui.about.AboutDialog
 import com.adafruit.pyleap.ui.connection.ConnectionCard
-import com.adafruit.pyleap.ui.connection.ConnectionViewModel
 import com.adafruit.pyleap.ui.connection.ScanDialog
 import com.adafruit.pyleap.ui.theme.NavigationBackground
 import com.adafruit.pyleap.ui.utils.LoadingContent
+import io.openroad.filetransfer.filetransfer.ConnectionManager
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
@@ -39,7 +39,7 @@ fun ProjectsScaffold(
     onRefreshProjects: () -> Unit,
     //onSelectProjectId: (String) -> Unit,
     //projectsListLazyListState: LazyListState,
-    connectionViewModel: ConnectionViewModel,
+    connectionManager: ConnectionManager,
     projectsLoadedContent: @Composable (
         projects: List<Project>
     ) -> Unit
@@ -56,7 +56,7 @@ fun ProjectsScaffold(
             topBar = {
                 if (showTopAppBar) {
                     ProjectsAppBar(
-                        connectionViewModel = connectionViewModel,
+                        connectionManager = connectionManager,
                         onOpenAbout = { isAboutDialogOpen = true },
                         onOpenScanDialog = { isScanDialogOpen = true })
                 }
@@ -177,9 +177,10 @@ private fun ProjectsContents(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProjectsAppBar(
-    connectionViewModel: ConnectionViewModel,
+    connectionManager: ConnectionManager,
     onOpenAbout: () -> Unit,
     onOpenScanDialog: () -> Unit,
 ) {
@@ -208,7 +209,7 @@ private fun ProjectsAppBar(
         )
 
         ConnectionCard(
-            connectionViewModel = connectionViewModel,
+            connectionManager = connectionManager,
             onOpenScanDialog = onOpenScanDialog
         )
     }

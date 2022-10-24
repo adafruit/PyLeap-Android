@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.adafruit.pyleap.R
 import com.adafruit.pyleap.ui.theme.ProjectCardBackground
 import com.adafruit.pyleap.ui.theme.PyLeapTheme
-import io.openroad.ble.state.BleState
+import io.openroad.filetransfer.ble.state.BleState
 
 /**
  * Created by Antonio García (antonio@openroad.es)

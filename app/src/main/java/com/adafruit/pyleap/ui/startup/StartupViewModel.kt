@@ -7,11 +7,11 @@ package com.adafruit.pyleap.ui.startup
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import io.openroad.ble.filetransfer.FileTransferConnectionManager
+import io.openroad.filetransfer.filetransfer.ConnectionManager
 import kotlinx.coroutines.flow.*
 
 class StartupViewModel(
-    private val fileTransferConnectionManager: FileTransferConnectionManager,
+    private val connectionManager: ConnectionManager,
     private val onFinished: () -> Unit,
 ) : ViewModel() {
 
@@ -21,7 +21,6 @@ class StartupViewModel(
         object Reconnecting : UiState()
         object Finished : UiState()
     }
-
 
     // Internal state
     private data class ViewModelState(
@@ -50,24 +49,22 @@ class StartupViewModel(
         simulateFinishReconnection()
     }
 
-
     private fun simulateFinishReconnection() {
         viewModelState.update { it.copy(state = UiState.Finished) }
         onFinished()
     }
-
 
     /**
      * Factory that takes StartupViewModel as a dependency
      */
     companion object {
         fun provideFactory(
-            fileTransferConnectionManager: FileTransferConnectionManager,
+            connectionManager: ConnectionManager,
             onFinished: () -> Unit,
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return StartupViewModel(fileTransferConnectionManager, onFinished) as T
+                return StartupViewModel(connectionManager, onFinished) as T
             }
         }
     }

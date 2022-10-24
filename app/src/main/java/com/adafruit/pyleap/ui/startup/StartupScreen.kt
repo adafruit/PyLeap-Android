@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,8 +29,10 @@ import com.adafruit.pyleap.R
 import com.adafruit.pyleap.ui.theme.PyLeapTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import io.openroad.ble.BleManager
-import io.openroad.ble.filetransfer.FakeFileTransferConnectionManagerImpl
+import io.openroad.filetransfer.ble.scanner.BlePeripheralScannerFake
+import io.openroad.filetransfer.ble.utils.BleManager
+import io.openroad.filetransfer.filetransfer.ConnectionManager
+import io.openroad.filetransfer.wifi.scanner.WifiPeripheralScannerFake
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -93,14 +96,23 @@ private fun SplashScreen(
 @Preview(showSystemUi = true)
 @Composable
 private fun StartupSmartPhonePreview() {
+
+    val connectionManager = ConnectionManager(
+        context = LocalContext.current,
+        blePeripheralScanner = BlePeripheralScannerFake(),
+        wifiPeripheralScanner = WifiPeripheralScannerFake(),
+        onBlePeripheralBonded = { _, _ -> },
+        onWifiPeripheralGetPasswordForHostName = { _, _ -> null }
+    )
+
     val startupViewModel: StartupViewModel = viewModel(
         factory = StartupViewModel.provideFactory(
-            fileTransferConnectionManager = FakeFileTransferConnectionManagerImpl(),
+            connectionManager = connectionManager,
             onFinished = {},
         )
     )
 
-    PyLeapTheme() {
+    PyLeapTheme {
         SplashScreen(startupViewModel = startupViewModel)
     }
 }
@@ -108,9 +120,17 @@ private fun StartupSmartPhonePreview() {
 @Preview(showBackground = true, device = Devices.PIXEL_C)
 @Composable
 fun StartupTabletPreview() {
+    val connectionManager = ConnectionManager(
+        context = LocalContext.current,
+        blePeripheralScanner = BlePeripheralScannerFake(),
+        wifiPeripheralScanner = WifiPeripheralScannerFake(),
+        onBlePeripheralBonded = { _, _ -> },
+        onWifiPeripheralGetPasswordForHostName = { _, _ -> null }
+    )
+
     val startupViewModel: StartupViewModel = viewModel(
         factory = StartupViewModel.provideFactory(
-            fileTransferConnectionManager = FakeFileTransferConnectionManagerImpl(),
+            connectionManager = connectionManager,
             onFinished = {},
         )
     )

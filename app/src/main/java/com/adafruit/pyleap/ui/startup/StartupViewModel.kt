@@ -12,13 +12,13 @@ import kotlinx.coroutines.flow.*
 
 class StartupViewModel(
     private val connectionManager: ConnectionManager,
-    private val onFinished: () -> Unit,
+    val onFinished: () -> Unit,
 ) : ViewModel() {
 
     // UI State
     sealed class UiState {
-        object AwaitingPermissionsCheck : UiState()
-        object Reconnecting : UiState()
+        //object AwaitingPermissionsCheck : UiState()
+        //object Reconnecting : UiState()
         object Finished : UiState()
     }
 
@@ -30,7 +30,7 @@ class StartupViewModel(
     }
 
     // Data - Private
-    private val viewModelState = MutableStateFlow(ViewModelState(UiState.AwaitingPermissionsCheck))
+    private val viewModelState = MutableStateFlow(ViewModelState(UiState.Finished)) //AwaitingPermissionsCheck))
 
     // Data
     val uiState = viewModelState
@@ -41,7 +41,7 @@ class StartupViewModel(
             viewModelState.value.toUiState()
         )
 
-
+/*
     fun permissionsChecked() {
         viewModelState.update { it.copy(state = UiState.Reconnecting) }
 
@@ -53,6 +53,7 @@ class StartupViewModel(
         viewModelState.update { it.copy(state = UiState.Finished) }
         onFinished()
     }
+*/
 
     /**
      * Factory that takes StartupViewModel as a dependency

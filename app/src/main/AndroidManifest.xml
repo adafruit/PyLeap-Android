@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Internet -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".PyLeapApplication"
         android:allowBackup="true"
@@ -12,6 +15,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PyLeap"
+        android:usesCleartextTraffic="true"
         tools:targetApi="32">
         <activity
             android:name=".ui.MainActivity"

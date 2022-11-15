@@ -54,13 +54,13 @@ dependencies {
     // Core
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
-    implementation 'androidx.activity:activity-compose:1.6.0'
+    implementation 'androidx.activity:activity-compose:1.6.1'
     implementation "androidx.compose.ui:ui:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
 
     // Material design
-    implementation 'androidx.compose.material3:material3:1.0.0-rc01'
-    implementation "androidx.compose.material3:material3-window-size-class:1.0.0-rc01"
+    implementation 'androidx.compose.material3:material3:1.0.0'
+    implementation "androidx.compose.material3:material3-window-size-class:1.0.0"
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
     implementation "com.google.accompanist:accompanist-swiperefresh:$accompanist_version"
 
@@ -68,7 +68,7 @@ dependencies {
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
 
     // Navigation
-    implementation 'androidx.navigation:navigation-compose:2.5.2'
+    implementation 'androidx.navigation:navigation-compose:2.5.3'
 
     // Retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
@@ -94,5 +94,4 @@ dependencies {
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
-
 }

@@ -17,8 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.adafruit.pyleap.R
@@ -31,14 +29,13 @@ fun ScanDialog(
     onClose: () -> Unit,
 ) {
     CustomDialog(
-        title = "Searching...",
+        title = "Select Peripheral",
         isExpandedScreen = isExpandedScreen,
         onClose = onClose,
     ) {
         ScanContents(isExpandedScreen = isExpandedScreen)
     }
 }
-
 
 @Composable
 private fun ScanContents(
@@ -61,11 +58,12 @@ private fun ScanContents(
                 contentDescription = null, // decorative element
             )
 
+            /*
             Text(
                 "Searching for PyLeap compatible device",
                 style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
-            )
+            )*/
         }
 
 
@@ -73,14 +71,14 @@ private fun ScanContents(
         val infiniteTransition = rememberInfiniteTransition()
         val angle by infiniteTransition.animateFloat(
             initialValue = 0F, targetValue = 360F, animationSpec = infiniteRepeatable(
-                animation = tween(5000, easing = LinearEasing)
+                animation = tween(12000, easing = LinearEasing)
             )
         )
 
         Image(
             modifier = Modifier.graphicsLayer {
                 rotationZ = angle
-            },
+            },//.alpha(0.3f),
             painter = painterResource(id = R.drawable.scan_scanning),
             contentDescription = null, // decorative element
         )
@@ -97,7 +95,8 @@ private fun ScanContents(
             )
 
             Button(
-                onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()
+                onClick = { /*TODO*/ },
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Pairing Tutorial")
             }
@@ -110,22 +109,26 @@ private fun ScanContents(
 @Composable
 fun ScanSmartphonePreview() {
     PyLeapTheme {
+        /*
         ScanDialog(
             isExpandedScreen = false,
             onClose = {},
-        )
+        )*/
+        
+        ScanContents(isExpandedScreen = false)
     }
 }
-
+/*
 @Preview(showBackground = true, device = Devices.PIXEL_C)
 @Composable
 fun ScanTabletPreview() {
     PyLeapTheme {
+
         ScanDialog(
             isExpandedScreen = true,
             onClose = {},
         )
     }
 }
-
+*/
 // endregion

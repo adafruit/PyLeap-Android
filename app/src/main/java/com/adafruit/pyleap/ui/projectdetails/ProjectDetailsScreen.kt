@@ -15,7 +15,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,44 +28,71 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.adafruit.pyleap.R
-import com.adafruit.pyleap.model.FakeProjectsRepositoryImpl
-import com.adafruit.pyleap.model.Project
+import com.adafruit.pyleap.model.ProjectDownloadStatus
+import com.adafruit.pyleap.model.ProjectTransferStatus
+import com.adafruit.pyleap.repository.ProjectsRepositoryFake
+import com.adafruit.pyleap.model.PyLeapProject
+import com.adafruit.pyleap.ui.components.PyLeapSnackbarHost
+import com.adafruit.pyleap.ui.connection.ConnectionCard
+import com.adafruit.pyleap.ui.connection.PeripheralsDialog
+import com.adafruit.pyleap.ui.connection.PeripheralsViewModel
 import com.adafruit.pyleap.ui.theme.ConnectionStatusSuccess
 import com.adafruit.pyleap.ui.theme.NavigationBackground
 import com.adafruit.pyleap.ui.theme.ProjectCardBackground
 import com.adafruit.pyleap.ui.theme.PyLeapTheme
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewState
+import io.openroad.filetransfer.ble.peripheral.SavedBondedBlePeripherals
+import io.openroad.filetransfer.ble.scanner.BlePeripheralScannerFake
+import io.openroad.filetransfer.filetransfer.ConnectionManager
+import io.openroad.filetransfer.wifi.peripheral.SavedSettingsWifiPeripherals
+import io.openroad.filetransfer.wifi.scanner.WifiPeripheralScannerFake
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun ProjectDetailsScreen(
     modifier: Modifier = Modifier,
-    project: Project,
-    isExpandedScreen: Boolean,
+    pyLeapProject: PyLeapProject,
     onBack: () -> Unit,
-    onRunProjectId: (String) -> Unit
+    onRunProjectId: (String) -> Unit,
+    isExpandedScreen: Boolean,
+    connectionManager: ConnectionManager,
+    savedBondedBlePeripherals: SavedBondedBlePeripherals? = null,          // only needed when !isExpandedScreen
+    savedSettingsWifiPeripherals: SavedSettingsWifiPeripherals? = null,    // only needed when !isExpandedScreen
 ) {
+    //val isConnectedToPeripheral by remember { derivedStateOf { connectionManager.currentFileTransferClient.value != null } }
+    val currentFileTransferClient by connectionManager.currentFileTransferClient.collectAsState()
+    val isConnectedToPeripheral = currentFileTransferClient != null
+
     val navController = rememberNavController()
+    val snackBarHostState = remember { SnackbarHostState() }
     val showTopAppBar = !isExpandedScreen
+    val project = pyLeapProject.data
 
     NavHost(
         navController = navController,
         startDestination = ProjectDetailsDestinations.Details.route
     ) {
+
+        // Project Details
         composable(ProjectDetailsDestinations.Details.route) {
+            var isScanDialogOpen by rememberSaveable { mutableStateOf(false) }
+
             Scaffold(
+                snackbarHost = { PyLeapSnackbarHost(snackBarHostState) },
                 topBar = {
                     if (showTopAppBar) {
                         ProjectDetailsTopBar(
-                            title = project.title,
+                            title = pyLeapProject.data.title,
                             subtitle = null,
                             showBackButton = true,
                             onBack = onBack,
@@ -72,20 +100,53 @@ fun ProjectDetailsScreen(
                     }
                 }, modifier = modifier
             ) { innerPadding ->
-                Box(
+                Column(
                     modifier = Modifier
                         .padding(innerPadding)
                 ) {
+                    if (!isExpandedScreen) {
+                        ConnectionCard(
+                            connectionManager = connectionManager,
+                            onOpenScanDialog = { isScanDialogOpen = true },
+                        )
+                    }
+
                     ProjectContents(
-                        project = project,
+                        pyLeapProject = pyLeapProject,
                         showProjectTitle = !showTopAppBar,
                         onShowLearningGuide = { navController.navigate(ProjectDetailsDestinations.LearningGuide.route) },
-                        onRunProjectId = onRunProjectId,
+                        isConnectedToPeripheral = isConnectedToPeripheral,
+                        snackBarHostState = snackBarHostState,
+                        onRunProjectId = {
+                            if (/*isExpandedScreen || */isConnectedToPeripheral) {
+                                onRunProjectId(it)
+                            } else {    // Show scan dialog inside this screen
+                                isScanDialogOpen = true
+                            }
+                        },
                     )
+                }
+
+                // Scan dialog
+                if (/*!isExpandedScreen &&*/ isScanDialogOpen && savedBondedBlePeripherals != null && savedSettingsWifiPeripherals != null) {
+                    val peripheralsViewModel: PeripheralsViewModel =
+                        viewModel(
+                            factory = PeripheralsViewModel.provideFactory(
+                                connectionManager = connectionManager,
+                                savedBondedBlePeripherals = savedBondedBlePeripherals,
+                                savedSettingsWifiPeripherals = savedSettingsWifiPeripherals
+                            )
+                        )
+
+                    PeripheralsDialog(
+                        viewModel = peripheralsViewModel,
+                        isExpandedScreen = isExpandedScreen,
+                        onClose = { isScanDialogOpen = false })
                 }
             }
         }
 
+        // Learning Guide
         composable(ProjectDetailsDestinations.LearningGuide.route) {
             val state = rememberWebViewState(project.learnGuideUrl.toString())
 
@@ -118,17 +179,34 @@ fun ProjectDetailsScreen(
             }*/
         }
     }
-
-
 }
 
 @Composable
 private fun ProjectContents(
-    project: Project,
+    pyLeapProject: PyLeapProject,
     showProjectTitle: Boolean,
     onShowLearningGuide: () -> Unit,
-    onRunProjectId: (String) -> Unit
+    isConnectedToPeripheral: Boolean,
+    onRunProjectId: (String) -> Unit,
+    snackBarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
+    val downloadState by pyLeapProject.downloadState.collectAsState()
+    val transferState by pyLeapProject.transferState.collectAsState()
+
+    LaunchedEffect(downloadState) {
+        if (downloadState is ProjectDownloadStatus.Error) {
+            snackBarHostState.showSnackbar(message = "Error: ${(downloadState as ProjectDownloadStatus.Error).cause.localizedMessage}")
+        }
+    }
+
+    LaunchedEffect(transferState) {
+        if (transferState is ProjectTransferStatus.Transferred) {
+            snackBarHostState.showSnackbar(message = "${pyLeapProject.data.title} successfully transferred")
+        } else if (transferState is ProjectTransferStatus.Error) {
+            snackBarHostState.showSnackbar(message = "Error: ${(transferState as ProjectTransferStatus.Error).cause.localizedMessage}")
+        }
+    }
+
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
@@ -136,6 +214,7 @@ private fun ProjectContents(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
+        val project = pyLeapProject.data
         if (showProjectTitle) {
             Text(
                 project.title,
@@ -189,9 +268,7 @@ private fun ProjectContents(
                         )
 
                         val textId = compatibilityStringResourceId.get(compatibleDevice)
-                        if (textId != null) {
-                            Text(stringResource(id = textId))
-                        }
+                        Text(if (textId != null) stringResource(textId) else compatibleDevice)
                     }
                 }
             }
@@ -218,16 +295,62 @@ private fun ProjectContents(
                 Text("Learn Guide")
             }
 
-            Button(
-                onClick = { /*TODO*/ },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Connect")
-            }
+            ActionButton(
+                transferState = transferState,
+                downloadState = downloadState,
+                isConnectedToPeripheral = isConnectedToPeripheral,
+                onRunProjectId = { onRunProjectId(pyLeapProject.data.id) }
+            )
         }
         //}
     }
 }
+
+@Composable
+private fun ActionButton(
+    transferState: ProjectTransferStatus,
+    downloadState: ProjectDownloadStatus,
+    isConnectedToPeripheral: Boolean,
+    onRunProjectId: () -> Unit
+) {
+    val isTransferring = transferState is ProjectTransferStatus.Transferring
+    val enabled =
+        !isTransferring && (downloadState == ProjectDownloadStatus.NotDownloaded || downloadState is ProjectDownloadStatus.Error || downloadState == ProjectDownloadStatus.Downloaded)
+
+    Button(
+        onClick = { onRunProjectId() },
+        modifier = Modifier.fillMaxWidth(),
+        enabled = enabled,
+    ) {
+        if (isConnectedToPeripheral) {
+
+            if (transferState is ProjectTransferStatus.Transferring) {
+                Text("Transferring ${(transferState.progress * 100).roundToInt()}%...")
+            } else when (downloadState) {
+                ProjectDownloadStatus.Connecting -> {
+                    Text("Connecting...")
+                }
+                is ProjectDownloadStatus.Downloading -> {
+                    Text("Downloading... ${(downloadState.progress * 100).roundToInt()}%")
+                }
+                ProjectDownloadStatus.Processing -> {
+                    Text("Processing...")
+                }
+                ProjectDownloadStatus.Downloaded -> {
+                    Text("Run")
+                }
+                else -> {
+                    // ProjectDownloadStatus.NotDownloaded
+                    // is ProjectDownloadStatus.Error
+                    Text("Download")
+                }
+            }
+        } else {
+            Text("Connect")
+        }
+    }
+}
+
 /*
 @Composable
 private fun StartUrlIntent(url: String) {
@@ -294,15 +417,44 @@ private fun ProjectDetailsTopBar(
 // region Preview
 @Preview(showBackground = true)
 @Composable
+fun ProjectContentPreview() {
+    // Use the FakeProjectsRepository for Preview
+    val projects =
+        ProjectsRepositoryFake(context = LocalContext.current).getAllPyLeapProjectsSynchronously()
+
+    PyLeapTheme {
+        ProjectContents(
+            pyLeapProject = projects.first(),
+            showProjectTitle = true,
+            onShowLearningGuide = {},
+            isConnectedToPeripheral = true,
+            onRunProjectId = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
 fun ProjectSmartphonePreview() {
     // Use the FakeProjectsRepository for Preview
     val projects =
-        FakeProjectsRepositoryImpl(context = LocalContext.current).getAllProjectsSynchronously()
+        ProjectsRepositoryFake(context = LocalContext.current).getAllPyLeapProjectsSynchronously()
+
+    val connectionManager = ConnectionManager(
+        context = LocalContext.current,
+        blePeripheralScanner = BlePeripheralScannerFake(),
+        wifiPeripheralScanner = WifiPeripheralScannerFake(),
+        onBlePeripheralBonded = { _, _ -> },
+        onWifiPeripheralGetPasswordForHostName = { _, _ -> null }
+    )
 
     PyLeapTheme {
-        ProjectDetailsScreen(project = projects.allProjects.first(),
+        ProjectDetailsScreen(pyLeapProject = projects.first(),
             isExpandedScreen = false,
             onBack = {},
+            connectionManager = connectionManager,
+            savedBondedBlePeripherals = SavedBondedBlePeripherals(LocalContext.current),
+            savedSettingsWifiPeripherals = SavedSettingsWifiPeripherals(LocalContext.current),
             //onShowLearningGuide = {},
             onRunProjectId = {})
     }
@@ -313,13 +465,23 @@ fun ProjectSmartphonePreview() {
 fun ProjectTabletPreview() {
     // Use the FakeProjectsRepository for Preview
     val projects =
-        FakeProjectsRepositoryImpl(context = LocalContext.current).getAllProjectsSynchronously()
+        ProjectsRepositoryFake(context = LocalContext.current).getAllPyLeapProjectsSynchronously()
+
+    val connectionManager = ConnectionManager(
+        context = LocalContext.current,
+        blePeripheralScanner = BlePeripheralScannerFake(),
+        wifiPeripheralScanner = WifiPeripheralScannerFake(),
+        onBlePeripheralBonded = { _, _ -> },
+        onWifiPeripheralGetPasswordForHostName = { _, _ -> null }
+    )
 
     PyLeapTheme {
-        ProjectDetailsScreen(project = projects.allProjects.first(),
+        ProjectDetailsScreen(pyLeapProject = projects.first(),
             isExpandedScreen = true,
             onBack = {},
-            //onShowLearningGuide = {},
+            connectionManager = connectionManager,
+            savedBondedBlePeripherals = SavedBondedBlePeripherals(LocalContext.current),
+            savedSettingsWifiPeripherals = SavedSettingsWifiPeripherals(LocalContext.current),
             onRunProjectId = {})
     }
 }

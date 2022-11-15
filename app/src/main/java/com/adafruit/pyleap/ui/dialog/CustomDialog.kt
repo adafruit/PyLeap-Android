@@ -65,7 +65,7 @@ private fun CustomDialogNavHost(
     val navController = rememberNavController()
 
     NavHost(
-        modifier = Modifier.fillMaxWidth(0.5F),
+        modifier = Modifier.fillMaxWidth(0.5f),
         navController = navController, startDestination = ScanDestinations.Scan.route
     ) {
         composable(ScanDestinations.Scan.route) {

@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import com.adafruit.pyleap.AppContainer
 import com.adafruit.pyleap.ui.projects.ProjectsScreen
 import com.adafruit.pyleap.ui.projects.ProjectsViewModel
+import com.adafruit.pyleap.ui.projects.ScanViewModel
 import com.adafruit.pyleap.ui.startup.StartupScreen
 import com.adafruit.pyleap.ui.startup.StartupViewModel
 
@@ -53,15 +54,24 @@ fun PyLeapNavGraph(
         composable(PyLeapDestinations.Projects.route) {
             val projectsViewModel: ProjectsViewModel = viewModel(
                 factory = ProjectsViewModel.provideFactory(
-                    autoselectFirstProjectAfterLoading = isExpandedScreen,
+                    autoSelectFirstProjectAfterLoading = isExpandedScreen,
                     projectsRepository = appContainer.projectsRepository
+                )
+            )
+
+            val scanViewModel: ScanViewModel = viewModel(
+                factory = ScanViewModel.provideFactory(
+                    connectionManager = appContainer.connectionManager
                 )
             )
 
             ProjectsScreen(
                 projectsViewModel = projectsViewModel,
+                scanViewModel = scanViewModel,
                 connectionManager = appContainer.connectionManager,
                 isExpandedScreen = isExpandedScreen,
+                savedBondedBlePeripherals = appContainer.savedBondedBlePeripherals,
+                savedSettingsWifiPeripherals = appContainer.savedSettingsWifiPeripherals,
             )
         }
     }

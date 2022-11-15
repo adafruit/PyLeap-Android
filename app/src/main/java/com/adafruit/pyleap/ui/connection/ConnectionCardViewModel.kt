@@ -2,13 +2,12 @@ package com.adafruit.pyleap.ui.connection
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.adafruit.glider.utils.LogUtils
 import io.openroad.filetransfer.Peripheral
 import io.openroad.filetransfer.filetransfer.ConnectionManager
 import io.openroad.filetransfer.filetransfer.Scanner
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 class ConnectionCardViewModel(
     connectionManager: ConnectionManager,
@@ -27,26 +26,22 @@ class ConnectionCardViewModel(
 
     // Internal state
     private data class ViewModelState(
-        val connectionManager: ConnectionManager,
+        val connectionManagerState: Scanner.ScanningState,
+        val connectedPeripheral: Peripheral?,
     ) {
         fun toUiState(): UiState {
             var result: UiState = UiState.Error("Scanning Undefined State")
-            val connectedPeripheral = connectionManager.currentFileTransferClient.value?.peripheral
 
             connectedPeripheral?.let {
                 result = UiState.Connected(it)
             } ?: run {
-                if (connectionManager.isScanning) {
-                    result = when (val state = connectionManager.scanningState.value) {
-                        is Scanner.ScanningState.Idle -> UiState.Scanning(emptyList())
-                        is Scanner.ScanningState.Scanning -> UiState.Scanning(state.peripherals)
-                        is Scanner.ScanningState.ScanningError -> UiState.Error(
-                            state.cause.message ?: "Scanning Error"
-                        )
-                        else -> UiState.Error("Scanning Undefined State")
-                    }
-                } else {
-                    result = UiState.Error("Scanning not Started")
+                result = when (connectionManagerState) {
+                    is Scanner.ScanningState.Idle -> UiState.Scanning(emptyList())
+                    is Scanner.ScanningState.Scanning -> UiState.Scanning(connectionManagerState.peripherals)
+                    is Scanner.ScanningState.ScanningError -> UiState.Error(
+                        connectionManagerState.cause.message ?: "Scanning Error"
+                    )
+                    else -> UiState.Error("Scanning Undefined State")
                 }
             }
 
@@ -55,7 +50,14 @@ class ConnectionCardViewModel(
     }
 
     // Data - Private
-    private val viewModelState = MutableStateFlow(ViewModelState(connectionManager))
+    // private val log by LogUtils()
+
+    private val viewModelState = MutableStateFlow(
+        ViewModelState(
+            connectionManagerState = connectionManager.scanningState.value,
+            connectedPeripheral = connectionManager.currentFileTransferClient.value?.peripheral
+        )
+    )
 
     // Data
     val uiState = viewModelState
@@ -65,4 +67,29 @@ class ConnectionCardViewModel(
             SharingStarted.Eagerly,
             viewModelState.value.toUiState()
         )
+
+
+    init {
+        // Monitor scanning
+        viewModelScope.launch {
+            connectionManager.scanningState.collect { state ->
+                //log.info("Connection state: $state")
+
+                // Update internal state
+                viewModelState.update { it.copy(connectionManagerState = state) }
+            }
+        }
+
+        // Monitor selected peripheral
+        viewModelScope.launch {
+            connectionManager.currentFileTransferClient.collect { fileTransferClient ->
+
+                val connectedPeripheral = fileTransferClient?.peripheral
+                //log.info("Connected to: ${connectedPeripheral?.nameOrAddress ?: "<nil>"}")
+
+                // Update internal state
+                viewModelState.update { it.copy(connectedPeripheral = connectedPeripheral) }
+            }
+        }
+    }
 }

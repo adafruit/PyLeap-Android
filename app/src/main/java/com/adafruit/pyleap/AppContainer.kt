@@ -5,8 +5,8 @@ package com.adafruit.pyleap
  */
 
 import android.content.Context
-import com.adafruit.pyleap.model.ProjectsRepository
-import com.adafruit.pyleap.model.ProjectsRepositoryImpl
+import com.adafruit.pyleap.repository.ProjectsRepository
+import com.adafruit.pyleap.repository.ProjectsRepositoryImpl
 import io.openroad.filetransfer.ble.scanner.BlePeripheralScanner
 import io.openroad.filetransfer.ble.scanner.BlePeripheralScannerImpl
 import io.openroad.filetransfer.filetransfer.ConnectionManager
@@ -38,7 +38,9 @@ interface AppContainer {
  */
 class AppContainerImpl(private val applicationContext: Context) : AppContainer {
     override val projectsRepository: ProjectsRepository by lazy {
-        ProjectsRepositoryImpl(context = applicationContext)
+        ProjectsRepositoryImpl(
+            context = applicationContext
+        )
     }
 
     override val blePeripheralScanner: BlePeripheralScanner by lazy {

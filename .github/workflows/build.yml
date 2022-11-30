@@ -3,7 +3,7 @@ name: Build debug app APK
 on:
   push:
     branches:
-      - main
+      - '**'
     pull_request:
       - main
 

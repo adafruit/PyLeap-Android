@@ -10,24 +10,26 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.adafruit.pyleap.R
-import com.adafruit.pyleap.model.Project
+import com.adafruit.pyleap.model.PyLeapProject
 import com.adafruit.pyleap.ui.about.AboutDialog
 import com.adafruit.pyleap.ui.connection.ConnectionCard
-import com.adafruit.pyleap.ui.connection.ScanDialog
+import com.adafruit.pyleap.ui.connection.PeripheralsDialog
+import com.adafruit.pyleap.ui.connection.PeripheralsViewModel
 import com.adafruit.pyleap.ui.theme.NavigationBackground
 import com.adafruit.pyleap.ui.utils.LoadingContent
+import io.openroad.filetransfer.ble.peripheral.SavedBondedBlePeripherals
+import io.openroad.filetransfer.filetransfer.ConnectionManager
+import io.openroad.filetransfer.wifi.peripheral.SavedSettingsWifiPeripherals
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
@@ -36,10 +38,11 @@ fun ProjectsScaffold(
     uiState: ProjectsViewModel.UiState,
     isExpandedScreen: Boolean,
     onRefreshProjects: () -> Unit,
-    //onSelectProjectId: (String) -> Unit,
-    //projectsListLazyListState: LazyListState,
+    connectionManager: ConnectionManager,
+    savedBondedBlePeripherals: SavedBondedBlePeripherals,
+    savedSettingsWifiPeripherals: SavedSettingsWifiPeripherals,
     projectsLoadedContent: @Composable (
-        projects: List<Project>
+        projects: List<PyLeapProject>
     ) -> Unit
 ) {
     val showTopAppBar = true //!isExpandedScreen
@@ -50,10 +53,10 @@ fun ProjectsScaffold(
 
         // Main UI
         Scaffold(
-            //snackbarHost = { PyLeapSnackbarHost(hostState = it) },
             topBar = {
                 if (showTopAppBar) {
                     ProjectsAppBar(
+                        connectionManager = connectionManager,
                         onOpenAbout = { isAboutDialogOpen = true },
                         onOpenScanDialog = { isScanDialogOpen = true })
                 }
@@ -66,19 +69,27 @@ fun ProjectsScaffold(
                 ProjectsContents(
                     uiState = uiState,
                     onRefreshProjects = onRefreshProjects,
-                    //onSelectProjectId = onSelectProjectId,
-                    //projectsListLazyListState = projectsListLazyListState,
                     projectsLoadedContent = projectsLoadedContent
                 )
             }
         }
 
-
         // Scan dialog
         if (isScanDialogOpen) {
-            ScanDialog(
+            val peripheralsViewModel: PeripheralsViewModel =
+                viewModel(
+                    factory = PeripheralsViewModel.provideFactory(
+                        connectionManager = connectionManager,
+                        savedBondedBlePeripherals = savedBondedBlePeripherals,
+                        savedSettingsWifiPeripherals = savedSettingsWifiPeripherals
+                    )
+                )
+
+            PeripheralsDialog(
+                viewModel = peripheralsViewModel,
                 isExpandedScreen = isExpandedScreen,
                 onClose = { isScanDialogOpen = false })
+
         } else if (isAboutDialogOpen) {
             AboutDialog(
                 isExpandedScreen = isExpandedScreen,
@@ -131,10 +142,8 @@ fun ProjectsScaffold(
 private fun ProjectsContents(
     uiState: ProjectsViewModel.UiState,
     onRefreshProjects: () -> Unit,
-    //onSelectProjectId: (String) -> Unit,
-    //projectsListLazyListState: LazyListState,
     projectsLoadedContent: @Composable (
-        projects: List<Project>
+        projects: List<PyLeapProject>
     ) -> Unit
 ) {
     val isLoading = uiState == ProjectsViewModel.UiState.Loading
@@ -164,18 +173,14 @@ private fun ProjectsContents(
             projectsLoadedContent(
                 projects = projects,
             )
-            /*
-            ProjectsList(
-                projects = projects,
-                onSelectProjectId = onSelectProjectId,
-                projectsListLazyListState = projectsListLazyListState,
-            )*/
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProjectsAppBar(
+    connectionManager: ConnectionManager,
     onOpenAbout: () -> Unit,
     onOpenScanDialog: () -> Unit,
 ) {
@@ -203,6 +208,9 @@ private fun ProjectsAppBar(
             }
         )
 
-        ConnectionCard(onOpenScanDialog = onOpenScanDialog)
+        ConnectionCard(
+            connectionManager = connectionManager,
+            onOpenScanDialog = onOpenScanDialog
+        )
     }
 }

@@ -7,29 +7,86 @@ package com.adafruit.pyleap.ui.projects
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.adafruit.pyleap.model.FakeProjectsRepositoryImpl
-import com.adafruit.pyleap.model.Project
+import com.adafruit.pyleap.repository.ProjectsRepositoryFake
+import com.adafruit.pyleap.model.PyLeapProject
+import com.adafruit.pyleap.ui.projectdetails.ProjectDetailsScreen
 import com.adafruit.pyleap.ui.theme.PyLeapTheme
+import com.adafruit.pyleap.utils.observeAsState
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import io.openroad.filetransfer.Config
+import io.openroad.filetransfer.ble.peripheral.SavedBondedBlePeripherals
+import io.openroad.filetransfer.ble.scanner.BlePeripheralScannerFake
+import io.openroad.filetransfer.filetransfer.ConnectionManager
+import io.openroad.filetransfer.wifi.peripheral.SavedSettingsWifiPeripherals
+import io.openroad.filetransfer.wifi.scanner.WifiPeripheralScannerFake
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ProjectsScreen(
     modifier: Modifier = Modifier,
     isExpandedScreen: Boolean,
     projectsViewModel: ProjectsViewModel,
+    scanViewModel: ScanViewModel,
+    connectionManager: ConnectionManager,
+    savedBondedBlePeripherals: SavedBondedBlePeripherals,
+    savedSettingsWifiPeripherals: SavedSettingsWifiPeripherals,
 ) {
-    val uiState by projectsViewModel.uiState.collectAsState()
 
+    // Permissions
+    val isInitialPermissionsCheckInProgress: Boolean
+    if (LocalInspectionMode.current) {
+        // Simulate permissions for Compose Preview
+        isInitialPermissionsCheckInProgress = false
+    } else {
+        // Check Bluetooth-related permissions state
+        val bluetoothPermissionState =
+            rememberMultiplePermissionsState(Config.getNeededPermissions())
+
+        isInitialPermissionsCheckInProgress =
+            !bluetoothPermissionState.allPermissionsGranted && !bluetoothPermissionState.shouldShowRationale
+        LaunchedEffect(isInitialPermissionsCheckInProgress) {
+            if (isInitialPermissionsCheckInProgress) {
+                // First time that permissions are needed at startup
+                bluetoothPermissionState.launchMultiplePermissionRequest()
+            } else {
+                // Permissions ready
+            }
+        }
+    }
+
+    // Start / Stop scanning based on lifecycle
+    val lifeCycleState = LocalLifecycleOwner.current.lifecycle.observeAsState()
+    if (!isInitialPermissionsCheckInProgress && lifeCycleState.value == Lifecycle.Event.ON_RESUME) {
+        LaunchedEffect(lifeCycleState) {
+            scanViewModel.onResume()
+        }
+    } else if (lifeCycleState.value == Lifecycle.Event.ON_PAUSE) {
+        LaunchedEffect(lifeCycleState) {
+            scanViewModel.onPause()
+        }
+    }
+
+    // UI
+    val uiState by projectsViewModel.uiState.collectAsState()
     ProjectsScreen(
         modifier = modifier,
         uiState = uiState,
         isExpandedScreen = isExpandedScreen,
-        projectsViewModel = projectsViewModel
+        projectsViewModel = projectsViewModel,
+        connectionManager = connectionManager,
+        savedBondedBlePeripherals = savedBondedBlePeripherals,
+        savedSettingsWifiPeripherals = savedSettingsWifiPeripherals,
     )
 }
 
@@ -40,27 +97,42 @@ private fun ProjectsScreen(
     uiState: ProjectsViewModel.UiState,
     isExpandedScreen: Boolean,
     projectsViewModel: ProjectsViewModel,
+    connectionManager: ConnectionManager,
+    savedBondedBlePeripherals: SavedBondedBlePeripherals,
+    savedSettingsWifiPeripherals: SavedSettingsWifiPeripherals,
 ) {
+    // Project List
     val projectsListLazyListState = rememberLazyListState()
+    /*
     val projectsDetailLazyListStates = when (uiState) {
         is ProjectsViewModel.UiState.Projects -> uiState.projects
         else -> emptyList()
     }.associate { project ->
-        key(project.id) {
-            project.id to rememberLazyListState()
+        key(project.data.id) {
+            project.data.id to rememberLazyListState()
+        }
+    }*/
+
+    val isLoadingProjects = uiState is ProjectsViewModel.UiState.Loading
+    val homeScreenType = getProjectsScreenType(isExpandedScreen, uiState)
+
+    val fileTransferClient by
+    connectionManager.currentFileTransferClient.collectAsState()
+
+    fun onRunProjectId(id: String) {
+        fileTransferClient?.let {
+            projectsViewModel.runProjectId(id = id, fileTransferClient = it)
         }
     }
-
-    val homeScreenType = getProjectsScreenType(isExpandedScreen, uiState)
 
     AnimatedContent(
         targetState = homeScreenType,
         transitionSpec = {
             // Compare the incoming number with the previous number.
-            if (initialState == ProjectsScreenType.Feed && targetState is ProjectsScreenType.ArticleDetails) {
+            if (initialState == ProjectsScreenType.Feed && targetState is ProjectsScreenType.Details) {
                 slideInVertically { height -> height } + fadeIn() with
                         /*slideOutVertically { height -> -height } + */fadeOut()
-            } else if (initialState is ProjectsScreenType.ArticleDetails && targetState == ProjectsScreenType.Feed) {
+            } else if (initialState is ProjectsScreenType.Details && targetState == ProjectsScreenType.Feed) {
                 /*slideInVertically { height -> -height } + */fadeIn() with
                         slideOutVertically { height -> height } + fadeOut()
             } else {
@@ -80,23 +152,29 @@ private fun ProjectsScreen(
                     uiState = uiState,
                     isExpandedScreen = isExpandedScreen,
                     onRefreshProjects = { projectsViewModel.refreshProjects() },
+                    connectionManager = connectionManager,
+                    savedBondedBlePeripherals = savedBondedBlePeripherals,
+                    savedSettingsWifiPeripherals = savedSettingsWifiPeripherals,
                 ) { projects ->
                     ProjectsList(
-
                         projects = projects,
+                        isLoading = isLoadingProjects,
                         onSelectProjectId = { projectsViewModel.selectProjectId(it) },
                         projectsListLazyListState = projectsListLazyListState,
                     )
                 }
             }
 
-            is ProjectsScreenType.ArticleDetails -> {
+            is ProjectsScreenType.Details -> {
                 ProjectDetailsScreen(
                     modifier = modifier,
-                    project = animatedHomeScreenType.project,
+                    pyLeapProject = animatedHomeScreenType.project,
                     isExpandedScreen = isExpandedScreen,
                     onBack = { projectsViewModel.unselectAll() },
-                    onRunProjectId = { /* TODO */ },
+                    connectionManager = connectionManager,
+                    savedBondedBlePeripherals = savedBondedBlePeripherals,
+                    savedSettingsWifiPeripherals = savedSettingsWifiPeripherals,
+                    onRunProjectId = { onRunProjectId(id = it) },
                 )
 
                 BackHandler {
@@ -104,21 +182,28 @@ private fun ProjectsScreen(
                 }
             }
 
-            is ProjectsScreenType.FeedWithArticleDetails -> {
+            is ProjectsScreenType.FeedWithDetails -> {
                 ProjectsScaffold(
                     modifier = modifier,
                     uiState = uiState,
                     isExpandedScreen = isExpandedScreen,
                     onRefreshProjects = { projectsViewModel.refreshProjects() },
+                    connectionManager = connectionManager,
+                    savedBondedBlePeripherals = savedBondedBlePeripherals,
+                    savedSettingsWifiPeripherals = savedSettingsWifiPeripherals,
+                    //snackBarHostState = snackBarHostState,
                 ) { projects ->
                     check(uiState is ProjectsViewModel.UiState.Projects)
 
                     ProjectsWithDetails(
+                        connectionManager = connectionManager,
                         projects = projects,
+                        isLoadingProjects = isLoadingProjects,
                         selectedProject = animatedHomeScreenType.selectedProject,
                         onSelectProjectId = { projectsViewModel.selectProjectId(it) },
+                        onRunProjectId = { onRunProjectId(id = it) },
                         projectsListLazyListState = projectsListLazyListState,
-                        projectsDetailLazyListStates = projectsDetailLazyListStates,
+                        //projectsDetailLazyListStates = projectsDetailLazyListStates,
                     )
                 }
             }
@@ -130,8 +215,8 @@ private fun ProjectsScreen(
 
 private sealed class ProjectsScreenType {
     object Feed : ProjectsScreenType()
-    data class ArticleDetails(val project: Project) : ProjectsScreenType()
-    data class FeedWithArticleDetails(val selectedProject: Project?) : ProjectsScreenType()
+    data class Details(val project: PyLeapProject) : ProjectsScreenType()
+    data class FeedWithDetails(val selectedProject: PyLeapProject?) : ProjectsScreenType()
 }
 
 /**
@@ -147,16 +232,16 @@ private fun getProjectsScreenType(
     true -> {
         when (uiState) {
             is ProjectsViewModel.UiState.Projects -> {
-                ProjectsScreenType.FeedWithArticleDetails(selectedProject = uiState.selectedProject)
+                ProjectsScreenType.FeedWithDetails(selectedProject = uiState.selectedProject)
             }
-            else -> ProjectsScreenType.FeedWithArticleDetails(selectedProject = null)
+            else -> ProjectsScreenType.FeedWithDetails(selectedProject = null)
         }
     }
     false -> {
         when (uiState) {
             is ProjectsViewModel.UiState.Projects -> {
                 if (uiState.selectedProject != null) {
-                    ProjectsScreenType.ArticleDetails(project = uiState.selectedProject)
+                    ProjectsScreenType.Details(project = uiState.selectedProject)
                 } else {
                     ProjectsScreenType.Feed
                 }
@@ -165,22 +250,43 @@ private fun getProjectsScreenType(
         }
     }
 }
-
 // endregion
+
 
 // region Preview
 @Preview(showBackground = true)
 @Composable
-fun ProjectsSmarphonePreview() {
+fun ProjectsSmartphonePreview() {
     // Use the FakeProjectsRepository for Preview
     val projectsViewModel: ProjectsViewModel = viewModel(
-        factory = ProjectsViewModel.provideFactory(FakeProjectsRepositoryImpl(context = LocalContext.current))
+        factory = ProjectsViewModel.provideFactory(
+            false,
+            ProjectsRepositoryFake(context = LocalContext.current)
+        )
+    )
+
+    val connectionManager = ConnectionManager(
+        context = LocalContext.current,
+        blePeripheralScanner = BlePeripheralScannerFake(),
+        wifiPeripheralScanner = WifiPeripheralScannerFake(),
+        onBlePeripheralBonded = { _, _ -> },
+        onWifiPeripheralGetPasswordForHostName = { _, _ -> null }
+    )
+
+    val scanViewModel: ScanViewModel = viewModel(
+        factory = ScanViewModel.provideFactory(
+            connectionManager = connectionManager
+        )
     )
 
     PyLeapTheme {
         ProjectsScreen(
             projectsViewModel = projectsViewModel,
-            isExpandedScreen = false
+            isExpandedScreen = false,
+            scanViewModel = scanViewModel,
+            connectionManager = connectionManager,
+            savedBondedBlePeripherals = SavedBondedBlePeripherals(LocalContext.current),
+            savedSettingsWifiPeripherals = SavedSettingsWifiPeripherals(LocalContext.current)
         )
     }
 }
@@ -190,13 +296,34 @@ fun ProjectsSmarphonePreview() {
 fun ProjectsTabletPortraitPreview() {
     // Use the FakeProjectsRepository for Preview
     val projectsViewModel: ProjectsViewModel = viewModel(
-        factory = ProjectsViewModel.provideFactory(FakeProjectsRepositoryImpl(context = LocalContext.current))
+        factory = ProjectsViewModel.provideFactory(
+            false,
+            ProjectsRepositoryFake(context = LocalContext.current)
+        )
+    )
+
+    val connectionManager = ConnectionManager(
+        context = LocalContext.current,
+        blePeripheralScanner = BlePeripheralScannerFake(),
+        wifiPeripheralScanner = WifiPeripheralScannerFake(),
+        onBlePeripheralBonded = { _, _ -> },
+        onWifiPeripheralGetPasswordForHostName = { _, _ -> null }
+    )
+
+    val scanViewModel: ScanViewModel = viewModel(
+        factory = ScanViewModel.provideFactory(
+            connectionManager = connectionManager
+        )
     )
 
     PyLeapTheme {
         ProjectsScreen(
             projectsViewModel = projectsViewModel,
-            isExpandedScreen = false
+            isExpandedScreen = false,
+            scanViewModel = scanViewModel,
+            connectionManager = connectionManager,
+            savedBondedBlePeripherals = SavedBondedBlePeripherals(LocalContext.current),
+            savedSettingsWifiPeripherals = SavedSettingsWifiPeripherals(LocalContext.current)
         )
     }
 }
@@ -206,7 +333,24 @@ fun ProjectsTabletPortraitPreview() {
 fun ProjectsTabletLandscapePreview() {
     // Use the FakeProjectsRepository for Preview
     val projectsViewModel: ProjectsViewModel = viewModel(
-        factory = ProjectsViewModel.provideFactory(FakeProjectsRepositoryImpl(context = LocalContext.current))
+        factory = ProjectsViewModel.provideFactory(
+            true,
+            ProjectsRepositoryFake(context = LocalContext.current)
+        )
+    )
+
+    val connectionManager = ConnectionManager(
+        context = LocalContext.current,
+        blePeripheralScanner = BlePeripheralScannerFake(),
+        wifiPeripheralScanner = WifiPeripheralScannerFake(),
+        onBlePeripheralBonded = { _, _ -> },
+        onWifiPeripheralGetPasswordForHostName = { _, _ -> null }
+    )
+
+    val scanViewModel: ScanViewModel = viewModel(
+        factory = ScanViewModel.provideFactory(
+            connectionManager = connectionManager
+        )
     )
 
     projectsViewModel.selectProjectId("Eyelights LED Glasses")
@@ -214,7 +358,11 @@ fun ProjectsTabletLandscapePreview() {
     PyLeapTheme {
         ProjectsScreen(
             projectsViewModel = projectsViewModel,
-            isExpandedScreen = true
+            isExpandedScreen = true,
+            scanViewModel = scanViewModel,
+            connectionManager = connectionManager,
+            savedBondedBlePeripherals = SavedBondedBlePeripherals(LocalContext.current),
+            savedSettingsWifiPeripherals = SavedSettingsWifiPeripherals(LocalContext.current)
         )
     }
 }

@@ -5,23 +5,42 @@ package com.adafruit.pyleap.ui.projects
  */
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.adafruit.pyleap.model.Project
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.adafruit.pyleap.model.PyLeapProject
+import com.adafruit.pyleap.repository.ProjectsRepositoryFake
+import com.adafruit.pyleap.ui.projectdetails.ProjectDetailsScreen
+import com.adafruit.pyleap.ui.theme.PyLeapTheme
+import io.openroad.filetransfer.ble.peripheral.SavedBondedBlePeripherals
+import io.openroad.filetransfer.ble.scanner.BlePeripheralScannerFake
+import io.openroad.filetransfer.filetransfer.ConnectionManager
+import io.openroad.filetransfer.wifi.peripheral.SavedSettingsWifiPeripherals
+import io.openroad.filetransfer.wifi.scanner.WifiPeripheralScannerFake
 
 @Composable
 fun ProjectsWithDetails(
-    projects: List<Project>,
-    selectedProject: Project?,
+    connectionManager: ConnectionManager,
+    projects: List<PyLeapProject>,
+    isLoadingProjects: Boolean,
+    selectedProject: PyLeapProject?,
     onSelectProjectId: (String) -> Unit,
-    projectsListLazyListState: LazyListState,
-    projectsDetailLazyListStates: Map<String, LazyListState>,
+    onRunProjectId: (String) -> Unit,
+    projectsListLazyListState: LazyListState = rememberLazyListState(),
+    //  projectsDetailLazyListStates: Map<String, LazyListState>,
 ) {
     Row(
         //modifier = Modifier.padding(20.dp),
@@ -33,31 +52,63 @@ fun ProjectsWithDetails(
                 //.notifyInput(onUnselectAll)
                 .imePadding(), // add padding for the on-screen keyboard
             projects = projects,
+            isLoading = isLoadingProjects,
             onSelectProjectId = onSelectProjectId,
             projectsListLazyListState = projectsListLazyListState,
         )
 
-        // Crossfade between different project details
+        // Cross-fade between different project details
         Crossfade(targetState = selectedProject) { project ->
 
             if (project == null) {
                 /* TODO empty state */
             } else {
                 // Get the lazy list state for this detail view
+                /*
                 val detailLazyListState by derivedStateOf {
                     projectsDetailLazyListStates.getValue(project.id)
                 }
-
+*/
                 // Key against the project id to avoid sharing any state between different projects
-                key(project.id) {
+                key(project.data.id) {
                     ProjectDetailsScreen(
-                        project = project,
+                        pyLeapProject = project,
                         isExpandedScreen = true,
                         onBack = { /* Nothing to do */ },
-                        onRunProjectId =  { /*TODO*/ }
+                        onRunProjectId = onRunProjectId,
+                        connectionManager = connectionManager,
                     )
                 }
             }
         }
     }
 }
+
+
+@Preview(showBackground = true, device = Devices.PIXEL_C)
+@Composable
+fun ProjectsWithDetailsPreview() {
+    val connectionManager = ConnectionManager(
+        context = LocalContext.current,
+        blePeripheralScanner = BlePeripheralScannerFake(),
+        wifiPeripheralScanner = WifiPeripheralScannerFake(),
+        onBlePeripheralBonded = { _, _ -> },
+        onWifiPeripheralGetPasswordForHostName = { _, _ -> null }
+    )
+
+    // Use the ProjectsRepositoryFake for Preview
+    val projects =
+        ProjectsRepositoryFake(context = LocalContext.current).getAllPyLeapProjectsSynchronously()
+
+    PyLeapTheme {
+        ProjectsWithDetails(
+            connectionManager = connectionManager,
+            projects = projects,
+            isLoadingProjects = false,
+            selectedProject = projects.first(),
+            onSelectProjectId = {},
+            onRunProjectId = {},
+        )
+    }
+}
+// endregion

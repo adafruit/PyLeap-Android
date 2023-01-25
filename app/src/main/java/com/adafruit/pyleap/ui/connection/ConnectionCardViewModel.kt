@@ -2,8 +2,8 @@ package com.adafruit.pyleap.ui.connection
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.adafruit.glider.utils.LogUtils
 import io.openroad.filetransfer.Peripheral
+import io.openroad.filetransfer.ble.peripheral.BondedBlePeripherals
 import io.openroad.filetransfer.filetransfer.ConnectionManager
 import io.openroad.filetransfer.filetransfer.Scanner
 import kotlinx.coroutines.flow.*
@@ -11,13 +11,13 @@ import kotlinx.coroutines.launch
 
 class ConnectionCardViewModel(
     connectionManager: ConnectionManager,
+    bondedBlePeripherals: BondedBlePeripherals?
 ) : ViewModel() {
     // UI State
     sealed class UiState {
         data class Connected(val peripheral: Peripheral) : UiState()
-        data class Scanning(val peripherals: List<Peripheral>) : UiState()
+        data class Scanning(val numPeripherals: Int) : UiState()
         data class Error(val message: String) : UiState()
-
     }
 
     // Data - Private
@@ -26,7 +26,8 @@ class ConnectionCardViewModel(
 
     // Internal state
     private data class ViewModelState(
-        val connectionManagerState: Scanner.ScanningState,
+        val scanningState: Scanner.ScanningState,
+        val bondedBlePeripheralsData: List<BondedBlePeripherals.Data>,
         val connectedPeripheral: Peripheral?,
     ) {
         fun toUiState(): UiState {
@@ -35,11 +36,11 @@ class ConnectionCardViewModel(
             connectedPeripheral?.let {
                 result = UiState.Connected(it)
             } ?: run {
-                result = when (connectionManagerState) {
-                    is Scanner.ScanningState.Idle -> UiState.Scanning(emptyList())
-                    is Scanner.ScanningState.Scanning -> UiState.Scanning(connectionManagerState.peripherals)
+                result = when (scanningState) {
+                    is Scanner.ScanningState.Idle -> UiState.Scanning(0)
+                    is Scanner.ScanningState.Scanning -> UiState.Scanning(scanningState.peripherals.size + bondedBlePeripheralsData.size)
                     is Scanner.ScanningState.ScanningError -> UiState.Error(
-                        connectionManagerState.cause.message ?: "Scanning Error"
+                        scanningState.cause.message ?: "Scanning Error"
                     )
                     else -> UiState.Error("Scanning Undefined State")
                 }
@@ -54,7 +55,8 @@ class ConnectionCardViewModel(
 
     private val viewModelState = MutableStateFlow(
         ViewModelState(
-            connectionManagerState = connectionManager.scanningState.value,
+            scanningState = connectionManager.scanningState.value,
+            bondedBlePeripheralsData = bondedBlePeripherals?.peripheralsData?.value ?: emptyList(),
             connectedPeripheral = connectionManager.currentFileTransferClient.value?.peripheral
         )
     )
@@ -76,7 +78,7 @@ class ConnectionCardViewModel(
                 //log.info("Connection state: $state")
 
                 // Update internal state
-                viewModelState.update { it.copy(connectionManagerState = state) }
+                viewModelState.update { it.copy(scanningState = state) }
             }
         }
 

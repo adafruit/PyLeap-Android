@@ -57,6 +57,7 @@ fun ProjectsScaffold(
                 if (showTopAppBar) {
                     ProjectsAppBar(
                         connectionManager = connectionManager,
+                        bondedBlePeripherals = bondedBlePeripherals,
                         onOpenAbout = { isAboutDialogOpen = true },
                         onOpenScanDialog = { isScanDialogOpen = true })
                 }
@@ -181,6 +182,7 @@ private fun ProjectsContents(
 @Composable
 private fun ProjectsAppBar(
     connectionManager: ConnectionManager,
+    bondedBlePeripherals: BondedBlePeripherals,
     onOpenAbout: () -> Unit,
     onOpenScanDialog: () -> Unit,
 ) {
@@ -210,6 +212,7 @@ private fun ProjectsAppBar(
 
         ConnectionCard(
             connectionManager = connectionManager,
+            bondedBlePeripherals = bondedBlePeripherals,
             onOpenScanDialog = onOpenScanDialog
         )
     }

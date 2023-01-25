@@ -107,6 +107,7 @@ fun ProjectDetailsScreen(
                     if (!isExpandedScreen) {
                         ConnectionCard(
                             connectionManager = connectionManager,
+                            bondedBlePeripherals = bondedBlePeripherals,
                             onOpenScanDialog = { isScanDialogOpen = true },
                         )
                     }

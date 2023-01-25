@@ -27,7 +27,7 @@ import com.adafruit.pyleap.ui.connection.PeripheralsDialog
 import com.adafruit.pyleap.ui.connection.PeripheralsViewModel
 import com.adafruit.pyleap.ui.theme.NavigationBackground
 import com.adafruit.pyleap.ui.utils.LoadingContent
-import io.openroad.filetransfer.ble.peripheral.SavedBondedBlePeripherals
+import io.openroad.filetransfer.ble.peripheral.BondedBlePeripherals
 import io.openroad.filetransfer.filetransfer.ConnectionManager
 import io.openroad.filetransfer.wifi.peripheral.SavedSettingsWifiPeripherals
 
@@ -39,7 +39,7 @@ fun ProjectsScaffold(
     isExpandedScreen: Boolean,
     onRefreshProjects: () -> Unit,
     connectionManager: ConnectionManager,
-    savedBondedBlePeripherals: SavedBondedBlePeripherals,
+    bondedBlePeripherals: BondedBlePeripherals,
     savedSettingsWifiPeripherals: SavedSettingsWifiPeripherals,
     projectsLoadedContent: @Composable (
         projects: List<PyLeapProject>
@@ -80,7 +80,7 @@ fun ProjectsScaffold(
                 viewModel(
                     factory = PeripheralsViewModel.provideFactory(
                         connectionManager = connectionManager,
-                        savedBondedBlePeripherals = savedBondedBlePeripherals,
+                        bondedBlePeripherals = bondedBlePeripherals,
                         savedSettingsWifiPeripherals = savedSettingsWifiPeripherals
                     )
                 )

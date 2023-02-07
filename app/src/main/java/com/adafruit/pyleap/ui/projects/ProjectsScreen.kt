@@ -7,7 +7,6 @@ package com.adafruit.pyleap.ui.projects
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,7 +24,7 @@ import com.adafruit.pyleap.utils.observeAsState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import io.openroad.filetransfer.Config
-import io.openroad.filetransfer.ble.peripheral.SavedBondedBlePeripherals
+import io.openroad.filetransfer.ble.peripheral.BondedBlePeripherals
 import io.openroad.filetransfer.ble.scanner.BlePeripheralScannerFake
 import io.openroad.filetransfer.filetransfer.ConnectionManager
 import io.openroad.filetransfer.wifi.peripheral.SavedSettingsWifiPeripherals
@@ -39,7 +38,7 @@ fun ProjectsScreen(
     projectsViewModel: ProjectsViewModel,
     scanViewModel: ScanViewModel,
     connectionManager: ConnectionManager,
-    savedBondedBlePeripherals: SavedBondedBlePeripherals,
+    bondedBlePeripherals: BondedBlePeripherals,
     savedSettingsWifiPeripherals: SavedSettingsWifiPeripherals,
 ) {
 
@@ -85,7 +84,7 @@ fun ProjectsScreen(
         isExpandedScreen = isExpandedScreen,
         projectsViewModel = projectsViewModel,
         connectionManager = connectionManager,
-        savedBondedBlePeripherals = savedBondedBlePeripherals,
+        bondedBlePeripherals = bondedBlePeripherals,
         savedSettingsWifiPeripherals = savedSettingsWifiPeripherals,
     )
 }
@@ -98,7 +97,7 @@ private fun ProjectsScreen(
     isExpandedScreen: Boolean,
     projectsViewModel: ProjectsViewModel,
     connectionManager: ConnectionManager,
-    savedBondedBlePeripherals: SavedBondedBlePeripherals,
+    bondedBlePeripherals: BondedBlePeripherals,
     savedSettingsWifiPeripherals: SavedSettingsWifiPeripherals,
 ) {
     // Project List
@@ -153,7 +152,7 @@ private fun ProjectsScreen(
                     isExpandedScreen = isExpandedScreen,
                     onRefreshProjects = { projectsViewModel.refreshProjects() },
                     connectionManager = connectionManager,
-                    savedBondedBlePeripherals = savedBondedBlePeripherals,
+                    bondedBlePeripherals = bondedBlePeripherals,
                     savedSettingsWifiPeripherals = savedSettingsWifiPeripherals,
                 ) { projects ->
                     ProjectsList(
@@ -172,7 +171,7 @@ private fun ProjectsScreen(
                     isExpandedScreen = isExpandedScreen,
                     onBack = { projectsViewModel.unselectAll() },
                     connectionManager = connectionManager,
-                    savedBondedBlePeripherals = savedBondedBlePeripherals,
+                    bondedBlePeripherals = bondedBlePeripherals,
                     savedSettingsWifiPeripherals = savedSettingsWifiPeripherals,
                     onRunProjectId = { onRunProjectId(id = it) },
                 )
@@ -189,7 +188,7 @@ private fun ProjectsScreen(
                     isExpandedScreen = isExpandedScreen,
                     onRefreshProjects = { projectsViewModel.refreshProjects() },
                     connectionManager = connectionManager,
-                    savedBondedBlePeripherals = savedBondedBlePeripherals,
+                    bondedBlePeripherals = bondedBlePeripherals,
                     savedSettingsWifiPeripherals = savedSettingsWifiPeripherals,
                     //snackBarHostState = snackBarHostState,
                 ) { projects ->
@@ -285,7 +284,7 @@ fun ProjectsSmartphonePreview() {
             isExpandedScreen = false,
             scanViewModel = scanViewModel,
             connectionManager = connectionManager,
-            savedBondedBlePeripherals = SavedBondedBlePeripherals(LocalContext.current),
+            bondedBlePeripherals = BondedBlePeripherals(LocalContext.current),
             savedSettingsWifiPeripherals = SavedSettingsWifiPeripherals(LocalContext.current)
         )
     }
@@ -322,7 +321,7 @@ fun ProjectsTabletPortraitPreview() {
             isExpandedScreen = false,
             scanViewModel = scanViewModel,
             connectionManager = connectionManager,
-            savedBondedBlePeripherals = SavedBondedBlePeripherals(LocalContext.current),
+            bondedBlePeripherals = BondedBlePeripherals(LocalContext.current),
             savedSettingsWifiPeripherals = SavedSettingsWifiPeripherals(LocalContext.current)
         )
     }
@@ -361,7 +360,7 @@ fun ProjectsTabletLandscapePreview() {
             isExpandedScreen = true,
             scanViewModel = scanViewModel,
             connectionManager = connectionManager,
-            savedBondedBlePeripherals = SavedBondedBlePeripherals(LocalContext.current),
+            bondedBlePeripherals = BondedBlePeripherals(LocalContext.current),
             savedSettingsWifiPeripherals = SavedSettingsWifiPeripherals(LocalContext.current)
         )
     }

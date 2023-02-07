@@ -11,24 +11,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.adafruit.pyleap.model.PyLeapProject
 import com.adafruit.pyleap.repository.ProjectsRepositoryFake
 import com.adafruit.pyleap.ui.projectdetails.ProjectDetailsScreen
 import com.adafruit.pyleap.ui.theme.PyLeapTheme
-import io.openroad.filetransfer.ble.peripheral.SavedBondedBlePeripherals
 import io.openroad.filetransfer.ble.scanner.BlePeripheralScannerFake
 import io.openroad.filetransfer.filetransfer.ConnectionManager
-import io.openroad.filetransfer.wifi.peripheral.SavedSettingsWifiPeripherals
 import io.openroad.filetransfer.wifi.scanner.WifiPeripheralScannerFake
 
 @Composable

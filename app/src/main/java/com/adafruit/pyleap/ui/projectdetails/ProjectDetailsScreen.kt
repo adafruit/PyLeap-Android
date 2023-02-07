@@ -49,7 +49,7 @@ import com.adafruit.pyleap.ui.theme.ProjectCardBackground
 import com.adafruit.pyleap.ui.theme.PyLeapTheme
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewState
-import io.openroad.filetransfer.ble.peripheral.SavedBondedBlePeripherals
+import io.openroad.filetransfer.ble.peripheral.BondedBlePeripherals
 import io.openroad.filetransfer.ble.scanner.BlePeripheralScannerFake
 import io.openroad.filetransfer.filetransfer.ConnectionManager
 import io.openroad.filetransfer.wifi.peripheral.SavedSettingsWifiPeripherals
@@ -66,7 +66,7 @@ fun ProjectDetailsScreen(
     onRunProjectId: (String) -> Unit,
     isExpandedScreen: Boolean,
     connectionManager: ConnectionManager,
-    savedBondedBlePeripherals: SavedBondedBlePeripherals? = null,          // only needed when !isExpandedScreen
+    bondedBlePeripherals: BondedBlePeripherals? = null,          // only needed when !isExpandedScreen
     savedSettingsWifiPeripherals: SavedSettingsWifiPeripherals? = null,    // only needed when !isExpandedScreen
 ) {
     //val isConnectedToPeripheral by remember { derivedStateOf { connectionManager.currentFileTransferClient.value != null } }
@@ -107,6 +107,7 @@ fun ProjectDetailsScreen(
                     if (!isExpandedScreen) {
                         ConnectionCard(
                             connectionManager = connectionManager,
+                            bondedBlePeripherals = bondedBlePeripherals,
                             onOpenScanDialog = { isScanDialogOpen = true },
                         )
                     }
@@ -128,12 +129,12 @@ fun ProjectDetailsScreen(
                 }
 
                 // Scan dialog
-                if (/*!isExpandedScreen &&*/ isScanDialogOpen && savedBondedBlePeripherals != null && savedSettingsWifiPeripherals != null) {
+                if (/*!isExpandedScreen &&*/ isScanDialogOpen && bondedBlePeripherals != null && savedSettingsWifiPeripherals != null) {
                     val peripheralsViewModel: PeripheralsViewModel =
                         viewModel(
                             factory = PeripheralsViewModel.provideFactory(
                                 connectionManager = connectionManager,
-                                savedBondedBlePeripherals = savedBondedBlePeripherals,
+                                bondedBlePeripherals = bondedBlePeripherals,
                                 savedSettingsWifiPeripherals = savedSettingsWifiPeripherals
                             )
                         )
@@ -453,7 +454,7 @@ fun ProjectSmartphonePreview() {
             isExpandedScreen = false,
             onBack = {},
             connectionManager = connectionManager,
-            savedBondedBlePeripherals = SavedBondedBlePeripherals(LocalContext.current),
+            bondedBlePeripherals = BondedBlePeripherals(LocalContext.current),
             savedSettingsWifiPeripherals = SavedSettingsWifiPeripherals(LocalContext.current),
             //onShowLearningGuide = {},
             onRunProjectId = {})
@@ -480,7 +481,7 @@ fun ProjectTabletPreview() {
             isExpandedScreen = true,
             onBack = {},
             connectionManager = connectionManager,
-            savedBondedBlePeripherals = SavedBondedBlePeripherals(LocalContext.current),
+            bondedBlePeripherals = BondedBlePeripherals(LocalContext.current),
             savedSettingsWifiPeripherals = SavedSettingsWifiPeripherals(LocalContext.current),
             onRunProjectId = {})
     }

@@ -70,7 +70,7 @@ fun PyLeapNavGraph(
                 scanViewModel = scanViewModel,
                 connectionManager = appContainer.connectionManager,
                 isExpandedScreen = isExpandedScreen,
-                savedBondedBlePeripherals = appContainer.savedBondedBlePeripherals,
+                bondedBlePeripherals = appContainer.bondedBlePeripherals,
                 savedSettingsWifiPeripherals = appContainer.savedSettingsWifiPeripherals,
             )
         }

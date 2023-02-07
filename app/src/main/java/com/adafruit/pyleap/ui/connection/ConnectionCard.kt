@@ -24,13 +24,15 @@ import com.adafruit.pyleap.ui.theme.ConnectionStatusError
 import com.adafruit.pyleap.ui.theme.ConnectionStatusScanning
 import com.adafruit.pyleap.ui.theme.ConnectionStatusSuccess
 import com.adafruit.pyleap.ui.theme.PyLeapTheme
+import io.openroad.filetransfer.ble.peripheral.BondedBlePeripherals
 import io.openroad.filetransfer.filetransfer.ConnectionManager
 import io.openroad.filetransfer.wifi.peripheral.WifiPeripheral
 
 @Composable
 fun ConnectionCard(
     connectionManager: ConnectionManager,
-    connectionCardViewModel: ConnectionCardViewModel = ConnectionCardViewModel(connectionManager = connectionManager),
+    bondedBlePeripherals: BondedBlePeripherals?,
+    connectionCardViewModel: ConnectionCardViewModel = ConnectionCardViewModel(connectionManager = connectionManager, bondedBlePeripherals = bondedBlePeripherals),
     onOpenScanDialog: () -> Unit,
 ) {
     val uiState by connectionCardViewModel.uiState.collectAsState()
@@ -89,7 +91,7 @@ private fun ConnectionCardContents(
                             strokeWidth = 2.dp
                         )*/
 
-                        val numPeripherals = uiState.peripherals.size
+                        val numPeripherals = uiState.numPeripherals
                         Text(
                             "Scanning... ($numPeripherals ${if (numPeripherals == 1) "peripheral" else "peripherals"} found)",
                             style = MaterialTheme.typography.labelLarge,
@@ -182,7 +184,7 @@ fun ConnectionCard_NotConnected_Preview() {
 fun ConnectionCard_Scanning_Preview() {
     val wifiPeripheral = WifiPeripheral("Adafruit Test", "http://192.168.0.1", 80)
     PyLeapTheme {
-        ConnectionCardContents(ConnectionCardViewModel.UiState.Scanning(listOf(wifiPeripheral))) {}
+        ConnectionCardContents(ConnectionCardViewModel.UiState.Scanning(listOf(wifiPeripheral).size)) {}
     }
 }
 

@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.adafruit.glider.utils.LogUtils
-import io.openroad.filetransfer.ble.peripheral.SavedBondedBlePeripherals
+import io.openroad.filetransfer.ble.peripheral.BondedBlePeripherals
 import io.openroad.filetransfer.filetransfer.ConnectionManager
 import io.openroad.filetransfer.filetransfer.WifiFileTransferPeripheral
 import io.openroad.filetransfer.wifi.peripheral.SavedSettingsWifiPeripherals
@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.update
 
 class PeripheralsViewModel(
     val connectionManager: ConnectionManager,
-    val savedBondedBlePeripherals: SavedBondedBlePeripherals,
+    val bondedBlePeripherals: BondedBlePeripherals,
     private val savedSettingsWifiPeripherals: SavedSettingsWifiPeripherals,
 ) : ViewModel() {
 
@@ -103,14 +103,14 @@ class PeripheralsViewModel(
     companion object {
         fun provideFactory(
             connectionManager: ConnectionManager,
-            savedBondedBlePeripherals: SavedBondedBlePeripherals,
+            bondedBlePeripherals: BondedBlePeripherals,
             savedSettingsWifiPeripherals: SavedSettingsWifiPeripherals,
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return PeripheralsViewModel(
                     connectionManager,
-                    savedBondedBlePeripherals,
+                    bondedBlePeripherals,
                     savedSettingsWifiPeripherals,
                 ) as T
             }

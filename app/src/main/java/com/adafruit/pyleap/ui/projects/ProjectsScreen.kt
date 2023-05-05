@@ -16,8 +16,8 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.adafruit.pyleap.repository.ProjectsRepositoryFake
 import com.adafruit.pyleap.model.PyLeapProject
+import com.adafruit.pyleap.repository.ProjectsRepositoryFake
 import com.adafruit.pyleap.ui.projectdetails.ProjectDetailsScreen
 import com.adafruit.pyleap.ui.theme.PyLeapTheme
 import com.adafruit.pyleap.utils.observeAsState
@@ -25,6 +25,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import io.openroad.filetransfer.Config
 import io.openroad.filetransfer.ble.peripheral.BondedBlePeripherals
+import io.openroad.filetransfer.ble.peripheral.BondedBlePeripheralsFake
 import io.openroad.filetransfer.ble.scanner.BlePeripheralScannerFake
 import io.openroad.filetransfer.filetransfer.ConnectionManager
 import io.openroad.filetransfer.wifi.peripheral.SavedSettingsWifiPeripherals
@@ -284,7 +285,7 @@ fun ProjectsSmartphonePreview() {
             isExpandedScreen = false,
             scanViewModel = scanViewModel,
             connectionManager = connectionManager,
-            bondedBlePeripherals = BondedBlePeripherals(LocalContext.current),
+            bondedBlePeripherals = BondedBlePeripheralsFake(),
             savedSettingsWifiPeripherals = SavedSettingsWifiPeripherals(LocalContext.current)
         )
     }
@@ -321,7 +322,7 @@ fun ProjectsTabletPortraitPreview() {
             isExpandedScreen = false,
             scanViewModel = scanViewModel,
             connectionManager = connectionManager,
-            bondedBlePeripherals = BondedBlePeripherals(LocalContext.current),
+            bondedBlePeripherals = BondedBlePeripheralsFake(),
             savedSettingsWifiPeripherals = SavedSettingsWifiPeripherals(LocalContext.current)
         )
     }
@@ -360,7 +361,7 @@ fun ProjectsTabletLandscapePreview() {
             isExpandedScreen = true,
             scanViewModel = scanViewModel,
             connectionManager = connectionManager,
-            bondedBlePeripherals = BondedBlePeripherals(LocalContext.current),
+            bondedBlePeripherals = BondedBlePeripheralsFake(),
             savedSettingsWifiPeripherals = SavedSettingsWifiPeripherals(LocalContext.current)
         )
     }

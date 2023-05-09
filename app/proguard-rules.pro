@@ -63,3 +63,10 @@
 # kept. Suspend functions are wrapped in continuations where the type argument
 # is used.
 -keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
+
+
+# OkHttp platform used only on JVM and when Conscrypt and other security providers are available.
+ -dontwarn okhttp3.internal.platform.**
+ -dontwarn org.conscrypt.**
+ -dontwarn org.bouncycastle.**
+ -dontwarn org.openjsse.**

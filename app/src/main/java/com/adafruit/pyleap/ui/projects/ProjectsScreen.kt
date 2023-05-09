@@ -4,6 +4,7 @@ package com.adafruit.pyleap.ui.projects
  * Created by Antonio García (antonio@openroad.es)
  */
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -119,6 +120,11 @@ private fun ProjectsScreen(
     val fileTransferClient by
     connectionManager.currentFileTransferClient.collectAsState()
 
+    LaunchedEffect(fileTransferClient) {
+        // Update boot info everytime a new peripheral is connected
+        projectsViewModel.updateBootInfoForConnectedPeripheral(fileTransferClient = fileTransferClient)
+    }
+
     fun onRunProjectId(id: String) {
         fileTransferClient?.let {
             projectsViewModel.runProjectId(id = id, fileTransferClient = it)
@@ -130,12 +136,15 @@ private fun ProjectsScreen(
         transitionSpec = {
             // Compare the incoming number with the previous number.
             if (initialState == ProjectsScreenType.Feed && targetState is ProjectsScreenType.Details) {
+                //Log.d("anim", "ProjectsScreen: Feed -> Details")
                 slideInVertically { height -> height } + fadeIn() with
                         /*slideOutVertically { height -> -height } + */fadeOut()
             } else if (initialState is ProjectsScreenType.Details && targetState == ProjectsScreenType.Feed) {
+                //Log.d("anim", "ProjectsScreen: Details -> Feed")
                 /*slideInVertically { height -> -height } + */fadeIn() with
                         slideOutVertically { height -> height } + fadeOut()
             } else {
+                //Log.d("anim", "ProjectsScreen: other")
                 fadeIn() with fadeOut()
             }.using(
                 // Disable clipping since the faded slide-in/out should
@@ -155,8 +164,9 @@ private fun ProjectsScreen(
                     connectionManager = connectionManager,
                     bondedBlePeripherals = bondedBlePeripherals,
                     savedSettingsWifiPeripherals = savedSettingsWifiPeripherals,
-                ) { projects ->
+                ) { filter, projects ->
                     ProjectsList(
+                        filter = filter,
                         projects = projects,
                         isLoading = isLoadingProjects,
                         onSelectProjectId = { projectsViewModel.selectProjectId(it) },
@@ -192,11 +202,12 @@ private fun ProjectsScreen(
                     bondedBlePeripherals = bondedBlePeripherals,
                     savedSettingsWifiPeripherals = savedSettingsWifiPeripherals,
                     //snackBarHostState = snackBarHostState,
-                ) { projects ->
+                ) { filter, projects ->
                     check(uiState is ProjectsViewModel.UiState.Projects)
 
                     ProjectsWithDetails(
                         connectionManager = connectionManager,
+                        filter = filter,
                         projects = projects,
                         isLoadingProjects = isLoadingProjects,
                         selectedProject = animatedHomeScreenType.selectedProject,
@@ -234,9 +245,11 @@ private fun getProjectsScreenType(
             is ProjectsViewModel.UiState.Projects -> {
                 ProjectsScreenType.FeedWithDetails(selectedProject = uiState.selectedProject)
             }
+
             else -> ProjectsScreenType.FeedWithDetails(selectedProject = null)
         }
     }
+
     false -> {
         when (uiState) {
             is ProjectsViewModel.UiState.Projects -> {
@@ -246,6 +259,7 @@ private fun getProjectsScreenType(
                     ProjectsScreenType.Feed
                 }
             }
+
             else -> ProjectsScreenType.Feed
         }
     }

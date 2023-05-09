@@ -33,6 +33,7 @@ import com.adafruit.pyleap.ui.theme.PyLeapTheme
 @Composable
 fun ProjectsList(
     modifier: Modifier = Modifier,
+    filter: String?,
     projects: List<PyLeapProject>,
     isLoading: Boolean,
     onSelectProjectId: (String) -> Unit,
@@ -52,15 +53,31 @@ fun ProjectsList(
             state = projectsListLazyListState
         ) {
             item {
-                Text(
-                    text = "Browse available PyLeap Projects",
-                    style = MaterialTheme.typography.headlineSmall,
-                    //color = Color.Gray,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .background(Color.White)
-                        .padding(16.dp)
-                )
+
+                Column(Modifier.padding(vertical = 16.dp)) {
+                    Text(
+                        text = "Browse available PyLeap Projects",
+                        style = MaterialTheme.typography.headlineSmall,
+                        //color = Color.Gray,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White)
+                    )
+
+                    // Add filter
+                    filter?.let {
+                        Text(
+                            text = "Filtered by: $filter",
+                            style = MaterialTheme.typography.titleSmall,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFFEEEEEE))
+                                .padding(2.dp)
+                        )
+                    }
+                }
             }
 
             items(items = projects, key = { it.data.id }) { project ->
@@ -107,6 +124,7 @@ fun ProjectsListPreview() {
 
     PyLeapTheme {
         ProjectsList(
+            filter = "test_board_id",
             projects = projects,
             isLoading = false,
             onSelectProjectId = {},

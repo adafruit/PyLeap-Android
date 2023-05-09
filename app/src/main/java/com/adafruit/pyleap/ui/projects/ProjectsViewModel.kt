@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.adafruit.glider.utils.LogUtils
+import com.adafruit.pyleap.model.CircuitPythonBootInfo
 import com.adafruit.pyleap.model.ProjectData
 import com.adafruit.pyleap.model.ProjectDownloadStatus
 import com.adafruit.pyleap.model.ProjectTransferStatus
@@ -29,6 +30,7 @@ class ProjectsViewModel(
         object Loading : UiState()
         data class Error(val message: String) : UiState()
         data class Projects(
+            val filter: String?,
             val projects: List<PyLeapProject>,
             val selectedProject: PyLeapProject?
         ) : UiState()
@@ -40,7 +42,8 @@ class ProjectsViewModel(
         val selectedProjectId: String? = null,
         val isLoading: Boolean = false,
         val errorMessage: String? = null,
-        val searchInput: String = ""
+        val searchInput: String = "",
+        val bootInfo: CircuitPythonBootInfo? = null
     ) {
         //private val log by LogUtils()
 
@@ -50,8 +53,16 @@ class ProjectsViewModel(
             } else if (errorMessage != null) {
                 UiState.Error(errorMessage)
             } else {
+                val filter = bootInfo?.boardId
+                var filteredProjects = projects.values.toList()
+                if (filter != null) {
+                    filteredProjects =
+                        filteredProjects.filter { it.data.compatibility.contains(filter) }
+                }
+
                 UiState.Projects(
-                    projects = projects.values.toList(),
+                    filter = filter,
+                    projects = filteredProjects,
                     selectedProject = if (selectedProjectId != null) projects[selectedProjectId] else null
                 )
             }
@@ -138,6 +149,15 @@ class ProjectsViewModel(
         }
     }
 
+    fun updateBootInfoForConnectedPeripheral(fileTransferClient: FileTransferClient?) {
+        viewModelState.update { it.copy(bootInfo = null) }
+        fileTransferClient?.let {
+            getCircuitPythonBootInfo(fileTransferClient = fileTransferClient) { updatedBootInfo ->
+                viewModelState.update { it.copy(bootInfo = updatedBootInfo) }
+            }
+        }
+    }
+
     fun runProjectId(id: String, fileTransferClient: FileTransferClient) {
         viewModelState.value.projects[id]?.let { project ->
 
@@ -148,19 +168,23 @@ class ProjectsViewModel(
                 is ProjectDownloadStatus.Connecting -> {
                     log.info("No action: already connecting")
                 }
+
                 is ProjectDownloadStatus.Downloading -> { /* Do nothing */
                     log.info("No action: already downloading")
                 }
+
                 ProjectDownloadStatus.Processing -> { /* Do nothing */
                     log.info("No action: already processing")
                 }
+
                 ProjectDownloadStatus.Downloaded -> {
                     project.setTransferState(ProjectTransferStatus.Transferring(0f))
                     transmit(
                         projectData = project.data,
                         fileTransferClient = fileTransferClient,
                         progress = { remainingFiles, totalFiles ->
-                            val factor = (totalFiles - remainingFiles).coerceAtLeast(0) / totalFiles.toFloat()
+                            val factor =
+                                (totalFiles - remainingFiles).coerceAtLeast(0) / totalFiles.toFloat()
                             project.setTransferState(ProjectTransferStatus.Transferring(factor))
                         },
                     ) { result ->
@@ -174,6 +198,7 @@ class ProjectsViewModel(
                         )
                     }
                 }
+
                 else -> {
                     download(projectData = project.data)
                 }
@@ -187,7 +212,6 @@ class ProjectsViewModel(
         val isFolder: Boolean
     )
 
-
     private fun transmit(
         projectData: ProjectData,
         fileTransferClient: FileTransferClient,
@@ -200,52 +224,81 @@ class ProjectsViewModel(
         } else {
             val originDirectoryFile = File(directory, projectData.id)
 
-            getCircuitPythonVersionFromPeripheralBootFile(fileTransferClient = fileTransferClient) { pythonDirectory ->
-                log.info("Use $pythonDirectory folder")
-
-                val pythonDirectoryPath = pythonDirectory + File.separator
-
-                val filesToTransfer: MutableList<FileToTransfer> = mutableListOf()
-                originDirectoryFile.walkTopDown().forEach {
-                    //log.info("File: ${it.path}")
-
-                    if (!it.isHidden) {
-                        val path = it.path
-                        val pythonDirectoryStartingIndex = path.indexOf(pythonDirectoryPath)
-                        if (pythonDirectoryStartingIndex >= 0) {
-                            val pythonDirectoryEndingIndex =
-                                pythonDirectoryStartingIndex + pythonDirectoryPath.utf8Size()
-                            val destinationPath = path.substring(pythonDirectoryEndingIndex.toInt())
-
-                            //log.info("File: $path -> $destinationPath")
-                            filesToTransfer.add(
-                                FileToTransfer(
-                                    it,
-                                    "/$destinationPath",
-                                    it.isDirectory
-                                )
-                            )
-                        }
-                    }
+            val cachedBootInfo = viewModelState.value.bootInfo
+            if (cachedBootInfo == null) {
+                getCircuitPythonBootInfo(fileTransferClient = fileTransferClient) { bootInfo ->
+                    val pythonDirectory = bootInfo.pythonFolderName
+                    transmit(
+                        originDirectoryFile = originDirectoryFile,
+                        pythonDirectory = pythonDirectory,
+                        fileTransferClient = fileTransferClient,
+                        progress = progress,
+                        completion = completion
+                    )
                 }
+            } else {
+                val pythonDirectory = cachedBootInfo.pythonFolderName
+                transmit(
+                    originDirectoryFile = originDirectoryFile,
+                    pythonDirectory = pythonDirectory,
+                    fileTransferClient = fileTransferClient,
+                    progress = progress,
+                    completion = completion
+                )
+            }
+        }
+    }
 
-                /*
-                filesToTransfer.forEach { fileToTransfer ->
-                    log.info("Transfer ${if (fileToTransfer.isFolder) "Folder" else "File" } : ${fileToTransfer.origin} -> ${fileToTransfer.destination}")
-                }*/
+    private fun transmit(
+        originDirectoryFile: File,
+        pythonDirectory: String,
+        fileTransferClient: FileTransferClient,
+        progress: (remainingFiles: Int, totalFiles: Int) -> Unit,
+        completion: ((Result<Unit>) -> Unit)
+    ) {
+        log.info("Use $pythonDirectory folder")
 
-                if (filesToTransfer.isEmpty()) {
-                    completion(Result.failure(Exception("No files to send")))
-                } else {
-                    transferFiles(
-                        filesToTransfer,
-                        fileTransferClient,
-                        progress = { remainingFiles ->
-                            progress(remainingFiles, filesToTransfer.size)
-                        }) {
-                        completion(it)
-                    }
+        val pythonDirectoryPath = pythonDirectory + File.separator
+
+        val filesToTransfer: MutableList<FileToTransfer> = mutableListOf()
+        originDirectoryFile.walkTopDown().forEach {
+            //log.info("File: ${it.path}")
+
+            if (!it.isHidden) {
+                val path = it.path
+                val pythonDirectoryStartingIndex = path.indexOf(pythonDirectoryPath)
+                if (pythonDirectoryStartingIndex >= 0) {
+                    val pythonDirectoryEndingIndex =
+                        pythonDirectoryStartingIndex + pythonDirectoryPath.utf8Size()
+                    val destinationPath = path.substring(pythonDirectoryEndingIndex.toInt())
+
+                    //log.info("File: $path -> $destinationPath")
+                    filesToTransfer.add(
+                        FileToTransfer(
+                            it,
+                            "/$destinationPath",
+                            it.isDirectory
+                        )
+                    )
                 }
+            }
+        }
+
+        /*
+        filesToTransfer.forEach { fileToTransfer ->
+            log.info("Transfer ${if (fileToTransfer.isFolder) "Folder" else "File" } : ${fileToTransfer.origin} -> ${fileToTransfer.destination}")
+        }*/
+
+        if (filesToTransfer.isEmpty()) {
+            completion(Result.failure(Exception("No files to send")))
+        } else {
+            transferFiles(
+                filesToTransfer,
+                fileTransferClient,
+                progress = { remainingFiles ->
+                    progress(remainingFiles, filesToTransfer.size)
+                }) {
+                completion(it)
             }
         }
     }
@@ -290,7 +343,12 @@ class ProjectsViewModel(
                     onSuccess = {
                         // Continue removing the one that has been transferred
                         val remainingFilesToTransfer = filesToTransfer.drop(1)
-                        transferFiles(remainingFilesToTransfer, fileTransferClient, progress, completion)
+                        transferFiles(
+                            remainingFilesToTransfer,
+                            fileTransferClient,
+                            progress,
+                            completion
+                        )
                     },
                     onFailure = {
                         log.warning("failed to write file: ${fileToTransfer.destination}. size: ${byteArray.size}. $it")
@@ -301,14 +359,12 @@ class ProjectsViewModel(
         }
     }
 
-    private fun getCircuitPythonVersionFromPeripheralBootFile(
+    private fun getCircuitPythonBootInfo(
         fileTransferClient: FileTransferClient,
-        completion: (String) -> Unit
+        completion: (CircuitPythonBootInfo) -> Unit
     ) {
-
         val version7FolderName = "CircuitPython 7.x"
         val version8FolderName = "CircuitPython 8.x"
-        val defaultResult = version8FolderName
 
         fileTransferClient.readFile(
             externalScope = viewModelScope,
@@ -317,11 +373,35 @@ class ProjectsViewModel(
         ) { result ->
             result.fold(
                 onSuccess = {
-                    val isVersion7 = String(it).contains("CircuitPython 7")
-                    completion(if (isVersion7) version7FolderName else defaultResult)
+                    // Parse python folder
+                    val bootInfoText = String(it)
+                    val isVersion7 = bootInfoText.contains("CircuitPython 7")
+
+                    // Parse boardId
+                    var boardId: String? = null
+                    val boardIdPrefix = "Board ID:"
+                    val boardIdIndex = bootInfoText.indexOf(boardIdPrefix)
+                    if (boardIdIndex >= 0) {
+                        var endIndex = bootInfoText.indexOf("\r\n", boardIdIndex)
+                        if (endIndex == -1) endIndex =
+                            bootInfoText.length - 1      // If \r\n not found, use the end of the file
+
+                        boardId =
+                            bootInfoText.substring(boardIdIndex + boardIdPrefix.length, endIndex)
+                    }
+
+                    val bootInfo = CircuitPythonBootInfo(
+                        pythonFolderName = if (isVersion7) version7FolderName else version8FolderName,
+                        boardId = boardId
+                    )
+                    completion(bootInfo)
                 },
                 onFailure = {
-                    completion(defaultResult)
+                    val bootInfo = CircuitPythonBootInfo(
+                        pythonFolderName = version8FolderName,      // Default value if not found is CircuitPython 8
+                        boardId = null
+                    )
+                    completion(bootInfo)
                 },
             )
         }

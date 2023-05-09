@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.adafruit.pyleap.R
 import com.adafruit.pyleap.model.PyLeapProject
@@ -42,6 +43,7 @@ fun ProjectsScaffold(
     bondedBlePeripherals: BondedBlePeripherals,
     savedSettingsWifiPeripherals: SavedSettingsWifiPeripherals,
     projectsLoadedContent: @Composable (
+        filter: String?,
         projects: List<PyLeapProject>
     ) -> Unit
 ) {
@@ -144,6 +146,7 @@ private fun ProjectsContents(
     uiState: ProjectsViewModel.UiState,
     onRefreshProjects: () -> Unit,
     projectsLoadedContent: @Composable (
+        filter: String?,
         projects: List<PyLeapProject>
     ) -> Unit
 ) {
@@ -161,7 +164,15 @@ private fun ProjectsContents(
                 if (isLoading) {
                     CircularProgressIndicator()
                 } else {
-                    Text("No projects available")
+                    val filter = (uiState as ProjectsViewModel.UiState.Projects).filter
+                    if (filter == null) {
+                        Text("No projects available", textAlign = TextAlign.Center)
+                    } else {
+                        Text(
+                            "No projects available for the selected board: $filter",
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
         },
@@ -169,10 +180,9 @@ private fun ProjectsContents(
         onRefresh = { onRefreshProjects() },
     ) {
         if (uiState is ProjectsViewModel.UiState.Projects) {
-            val projects = uiState.projects
-
             projectsLoadedContent(
-                projects = projects,
+                filter = uiState.filter,
+                projects = uiState.projects,
             )
         }
     }

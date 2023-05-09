@@ -29,6 +29,7 @@ import io.openroad.filetransfer.wifi.scanner.WifiPeripheralScannerFake
 @Composable
 fun ProjectsWithDetails(
     connectionManager: ConnectionManager,
+    filter: String?,
     projects: List<PyLeapProject>,
     isLoadingProjects: Boolean,
     selectedProject: PyLeapProject?,
@@ -46,6 +47,7 @@ fun ProjectsWithDetails(
                 .fillMaxWidth(0.4f)
                 //.notifyInput(onUnselectAll)
                 .imePadding(), // add padding for the on-screen keyboard
+            filter = filter,
             projects = projects,
             isLoading = isLoadingProjects,
             onSelectProjectId = onSelectProjectId,
@@ -98,6 +100,7 @@ fun ProjectsWithDetailsPreview() {
     PyLeapTheme {
         ProjectsWithDetails(
             connectionManager = connectionManager,
+            filter = "test_board_id",
             projects = projects,
             isLoadingProjects = false,
             selectedProject = projects.first(),

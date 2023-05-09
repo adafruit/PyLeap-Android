@@ -41,7 +41,7 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun PyLeapTheme(
-        darkTheme: Boolean = isSystemInDarkTheme(),
+        darkTheme: Boolean = false, //isSystemInDarkTheme(),    // TODO: add support for dark theme
         // Dynamic color is available on Android 12+
         dynamicColor: Boolean = true,
         content: @Composable () -> Unit

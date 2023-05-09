@@ -32,12 +32,5 @@ interface ProjectsRepository {
         defaultDispatcher: CoroutineDispatcher = Dispatchers.IO
     )
 
-    // TODO: delete. This is not used
-    fun transmitProject(
-        projectData: ProjectData,
-        externalScope: CoroutineScope,
-        defaultDispatcher: CoroutineDispatcher = Dispatchers.IO
-    )
-
     fun getFilesDirectory(): File?
 }

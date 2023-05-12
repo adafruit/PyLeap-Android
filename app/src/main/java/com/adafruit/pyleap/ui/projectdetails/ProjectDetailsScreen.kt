@@ -50,6 +50,7 @@ import com.adafruit.pyleap.ui.theme.PyLeapTheme
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewState
 import io.openroad.filetransfer.ble.peripheral.BondedBlePeripherals
+import io.openroad.filetransfer.ble.peripheral.BondedBlePeripheralsFake
 import io.openroad.filetransfer.ble.scanner.BlePeripheralScannerFake
 import io.openroad.filetransfer.filetransfer.ConnectionManager
 import io.openroad.filetransfer.wifi.peripheral.SavedSettingsWifiPeripherals
@@ -454,7 +455,7 @@ fun ProjectSmartphonePreview() {
             isExpandedScreen = false,
             onBack = {},
             connectionManager = connectionManager,
-            bondedBlePeripherals = BondedBlePeripherals(LocalContext.current),
+            bondedBlePeripherals = BondedBlePeripheralsFake(),
             savedSettingsWifiPeripherals = SavedSettingsWifiPeripherals(LocalContext.current),
             //onShowLearningGuide = {},
             onRunProjectId = {})
@@ -481,7 +482,7 @@ fun ProjectTabletPreview() {
             isExpandedScreen = true,
             onBack = {},
             connectionManager = connectionManager,
-            bondedBlePeripherals = BondedBlePeripherals(LocalContext.current),
+            bondedBlePeripherals = BondedBlePeripheralsFake(),
             savedSettingsWifiPeripherals = SavedSettingsWifiPeripherals(LocalContext.current),
             onRunProjectId = {})
     }

@@ -45,7 +45,7 @@ class ProjectsRepositoryImpl(private val context: Context) : ProjectsRepository 
                 val pyLeapProjects = projectsData.map { projectData ->
 
                     val downloadState =
-                        calculateProjectDownloadState(context = context, projectData = projectData)
+                        calculateProjectDownloadState(projectData = projectData)
                     PyLeapProject(data = projectData, downloadStatus = downloadState)
                 }
                 _projects.update { pyLeapProjects.associateBy({ it.data.id }, { it }) }
@@ -160,7 +160,7 @@ class ProjectsRepositoryImpl(private val context: Context) : ProjectsRepository 
     }
 
     private fun calculateProjectDownloadState(
-        context: Context, projectData: ProjectData
+        projectData: ProjectData
     ): ProjectDownloadStatus {
 
         val existingDownloadJob = downloadJobs[projectData.id]
@@ -185,25 +185,4 @@ class ProjectsRepositoryImpl(private val context: Context) : ProjectsRepository 
 
     // endregion
 
-    // region Transmit Project
-    override fun transmitProject(
-        projectData: ProjectData,
-        externalScope: CoroutineScope,
-        defaultDispatcher: CoroutineDispatcher
-    ) {
-        val directory = getFilesDirectory()
-        if (directory == null) {
-            log.info("${projectData.id} error getFilesDirectory null")
-        } else {
-            val origin = File(directory, projectData.id).path
-
-
-        }
-    }
-
-
-    private fun getCircuitPythonVersionFromPeripheralBootFile() {
-
-    }
-    // endregion
 }

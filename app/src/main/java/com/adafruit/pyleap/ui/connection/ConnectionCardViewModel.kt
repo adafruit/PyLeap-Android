@@ -39,9 +39,9 @@ class ConnectionCardViewModel(
                 result = when (scanningState) {
                     is Scanner.ScanningState.Idle -> UiState.Scanning(0)
                     is Scanner.ScanningState.Scanning -> UiState.Scanning(scanningState.peripherals.size + bondedBlePeripheralsData.size)
-                    is Scanner.ScanningState.ScanningError -> UiState.Error(
+                    /*is Scanner.ScanningState.ScanningError -> UiState.Error(
                         scanningState.cause.message ?: "Scanning Error"
-                    )
+                    )*/
                     else -> UiState.Error("Scanning Undefined State")
                 }
             }

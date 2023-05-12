@@ -11,6 +11,7 @@ import io.openroad.filetransfer.ble.scanner.BlePeripheralScanner
 import io.openroad.filetransfer.ble.scanner.BlePeripheralScannerImpl
 import io.openroad.filetransfer.filetransfer.ConnectionManager
 import io.openroad.filetransfer.ble.peripheral.BondedBlePeripherals
+import io.openroad.filetransfer.ble.peripheral.BondedBlePeripheralsImpl
 import io.openroad.filetransfer.wifi.peripheral.SavedSettingsWifiPeripherals
 import io.openroad.filetransfer.wifi.scanner.WifiPeripheralScanner
 import io.openroad.wifi.scanner.WifiPeripheralScannerImpl
@@ -75,7 +76,7 @@ class AppContainerImpl(private val applicationContext: Context) : AppContainer {
     }
 
     override val bondedBlePeripherals: BondedBlePeripherals by lazy {
-        BondedBlePeripherals(
+        BondedBlePeripheralsImpl(
             context = applicationContext
         )
     }

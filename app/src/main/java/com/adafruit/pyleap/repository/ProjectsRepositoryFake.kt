@@ -35,7 +35,7 @@ class ProjectsRepositoryFake(private val context: Context) : ProjectsRepository 
         val projectsData = getAllProjectsSynchronously().allProjects
         val pyLeapProjects = projectsData.map { projectData ->
             val downloadState =
-                calculateProjectDownloadState(context = context, projectData = projectData)
+                calculateProjectDownloadState(projectData = projectData)
             PyLeapProject(data = projectData, downloadStatus = downloadState)
         }
         _projects.update { pyLeapProjects.associateBy({ it.data.id }, { it }) }
@@ -54,7 +54,7 @@ class ProjectsRepositoryFake(private val context: Context) : ProjectsRepository 
         val projectsData = getAllProjectsSynchronously().allProjects
         val pyLeapProjects = projectsData.map { projectData ->
             val downloadState =
-                calculateProjectDownloadState(context = context, projectData = projectData)
+                calculateProjectDownloadState(projectData = projectData)
             PyLeapProject(data = projectData, downloadStatus = downloadState)
         }
         return pyLeapProjects
@@ -77,16 +77,14 @@ class ProjectsRepositoryFake(private val context: Context) : ProjectsRepository 
     }
 
     private fun calculateProjectDownloadState(
-        context: Context, projectData: ProjectData
+        projectData: ProjectData
     ): ProjectDownloadStatus {
         val directory = getFilesDirectory()
         val filename = projectData.id
         val file = File(directory, filename)
 
-        val exists =
-            if (file.exists()) ProjectDownloadStatus.Downloaded else ProjectDownloadStatus.NotDownloaded
         //Log.d("test", "${projectData.id} -> ${file.path} -> exists: ${file.exists()}")
-        return exists
+        return if (file.exists()) ProjectDownloadStatus.Downloaded else ProjectDownloadStatus.NotDownloaded
     }
 
     override fun getFilesDirectory(): File? {
@@ -95,13 +93,4 @@ class ProjectsRepositoryFake(private val context: Context) : ProjectsRepository 
 
     // endregion
 
-    // region Transmit Project
-    override fun transmitProject(
-        projectData: ProjectData,
-        externalScope: CoroutineScope,
-        defaultDispatcher: CoroutineDispatcher
-    ) {
-
-    }
-    // endregion
 }

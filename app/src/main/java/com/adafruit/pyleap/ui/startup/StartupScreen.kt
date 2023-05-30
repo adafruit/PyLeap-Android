@@ -11,30 +11,25 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.adafruit.pyleap.R
 import com.adafruit.pyleap.ui.theme.PyLeapTheme
-import com.adafruit.pyleap.utils.observeAsState
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import io.openroad.filetransfer.ble.scanner.BlePeripheralScannerFake
-import io.openroad.filetransfer.ble.utils.BleManager
 import io.openroad.filetransfer.filetransfer.ConnectionManager
 import io.openroad.filetransfer.wifi.scanner.WifiPeripheralScannerFake
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun StartupScreen(
     startupViewModel: StartupViewModel,
@@ -62,14 +57,12 @@ fun StartupScreen(
     }
 
     // Splash Screen
-    SplashScreen(startupViewModel = startupViewModel)
+    SplashScreen()
 }
 
 @Composable
-private fun SplashScreen(
-    startupViewModel: StartupViewModel,
-) {
-    val uiState by startupViewModel.uiState.collectAsState()
+private fun SplashScreen() {
+    // val uiState by startupViewModel.uiState.collectAsState()
 
     // Splash screen
     Surface {
@@ -104,47 +97,17 @@ private fun SplashScreen(
 @Preview(showSystemUi = true)
 @Composable
 private fun StartupSmartPhonePreview() {
-
-    val connectionManager = ConnectionManager(
-        context = LocalContext.current,
-        blePeripheralScanner = BlePeripheralScannerFake(),
-        wifiPeripheralScanner = WifiPeripheralScannerFake(),
-        onBlePeripheralBonded = { _, _ -> },
-        onWifiPeripheralGetPasswordForHostName = { _, _ -> null }
-    )
-
-    val startupViewModel: StartupViewModel = viewModel(
-        factory = StartupViewModel.provideFactory(
-            connectionManager = connectionManager,
-            onFinished = {},
-        )
-    )
-
     PyLeapTheme {
-        SplashScreen(startupViewModel = startupViewModel)
+        SplashScreen()
     }
 }
 
 @Preview(showBackground = true, device = Devices.PIXEL_C)
 @Composable
 fun StartupTabletPreview() {
-    val connectionManager = ConnectionManager(
-        context = LocalContext.current,
-        blePeripheralScanner = BlePeripheralScannerFake(),
-        wifiPeripheralScanner = WifiPeripheralScannerFake(),
-        onBlePeripheralBonded = { _, _ -> },
-        onWifiPeripheralGetPasswordForHostName = { _, _ -> null }
-    )
-
-    val startupViewModel: StartupViewModel = viewModel(
-        factory = StartupViewModel.provideFactory(
-            connectionManager = connectionManager,
-            onFinished = {},
-        )
-    )
 
     PyLeapTheme {
-        SplashScreen(startupViewModel = startupViewModel)
+        SplashScreen()
     }
 }
 //endregion

@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -26,7 +25,6 @@ import androidx.navigation.compose.rememberNavController
 import com.adafruit.pyleap.ui.connection.ScanDestinations
 import com.adafruit.pyleap.ui.theme.NavigationBackground
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun CustomDialog(
     title: String,
@@ -53,7 +51,6 @@ fun CustomDialog(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CustomDialogNavHost(
     modifier: Modifier = Modifier,

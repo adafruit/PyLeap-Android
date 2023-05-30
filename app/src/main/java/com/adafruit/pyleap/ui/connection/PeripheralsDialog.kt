@@ -1,7 +1,6 @@
 package com.adafruit.pyleap.ui.connection
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -14,7 +13,6 @@ import com.adafruit.pyleap.ui.dialog.CustomDialog
  * Created by Antonio García (antonio@openroad.es)
  */
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PeripheralsDialog(
     viewModel: PeripheralsViewModel,

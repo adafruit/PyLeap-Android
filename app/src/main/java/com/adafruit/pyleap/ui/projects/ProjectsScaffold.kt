@@ -4,7 +4,6 @@ package com.adafruit.pyleap.ui.projects
  * Created by Antonio García (antonio@openroad.es)
  */
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -33,7 +32,6 @@ import io.openroad.filetransfer.filetransfer.ConnectionManager
 import io.openroad.filetransfer.wifi.peripheral.SavedSettingsWifiPeripherals
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 fun ProjectsScaffold(
     modifier: Modifier = Modifier,
     uiState: ProjectsViewModel.UiState,

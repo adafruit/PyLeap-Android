@@ -37,8 +37,8 @@ import coil.request.ImageRequest
 import com.adafruit.pyleap.R
 import com.adafruit.pyleap.model.ProjectDownloadStatus
 import com.adafruit.pyleap.model.ProjectTransferStatus
-import com.adafruit.pyleap.repository.ProjectsRepositoryFake
 import com.adafruit.pyleap.model.PyLeapProject
+import com.adafruit.pyleap.repository.ProjectsRepositoryFake
 import com.adafruit.pyleap.ui.components.PyLeapSnackbarHost
 import com.adafruit.pyleap.ui.connection.ConnectionCard
 import com.adafruit.pyleap.ui.connection.PeripheralsDialog
@@ -57,7 +57,6 @@ import io.openroad.filetransfer.wifi.peripheral.SavedSettingsWifiPeripherals
 import io.openroad.filetransfer.wifi.scanner.WifiPeripheralScannerFake
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun ProjectDetailsScreen(
